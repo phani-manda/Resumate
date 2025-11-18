@@ -11,38 +11,55 @@ import { Progress } from "@/components/ui/progress"
 import { Sparkles, TrendingUp, AlertCircle, CheckCircle2, Download, FileText, Zap } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import { toast } from "sonner"
+
+interface OptimizationResults {
+  atsScore: number
+  keywordsToAdd: string[]
+  matchedKeywords: string[]
+  suggestions: string[]
+  reportId?: string
+}
 
 export function AIOptimizer() {
   const [jobDescription, setJobDescription] = useState("")
   const [resumeText, setResumeText] = useState("")
   const [analyzing, setAnalyzing] = useState(false)
+  const [results, setResults] = useState<OptimizationResults | null>(null)
 
-  // Mock data for demo (no business logic)
-  const atsScore = 78
-  const keywordsToAdd = [
-    { keyword: "React", priority: "high" },
-    { keyword: "TypeScript", priority: "high" },
-    { keyword: "Cloud Architecture", priority: "medium" },
-    { keyword: "Agile Methodology", priority: "medium" },
-    { keyword: "CI/CD", priority: "low" },
-    { keyword: "Team Leadership", priority: "low" },
-  ]
+  const handleAnalyze = async () => {
+    if (!jobDescription.trim() || !resumeText.trim()) {
+      toast.error("Please provide both job description and resume text")
+      return
+    }
 
-  const matchedKeywords = [
-    "JavaScript", "Node.js", "REST API", "Git", "Problem Solving"
-  ]
-
-  const suggestions = [
-    "Add more quantifiable achievements with specific metrics",
-    "Include relevant certifications in the skills section",
-    "Tailor your professional summary to match the job description",
-    "Use action verbs to start each bullet point",
-    "Remove outdated technologies and focus on current stack",
-  ]
-
-  const handleAnalyze = () => {
     setAnalyzing(true)
-    setTimeout(() => setAnalyzing(false), 2000)
+    try {
+      const response = await fetch('/api/ai/optimize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobDescription, resumeText }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze resume')
+      }
+
+      const data = await response.json()
+      setResults({
+        atsScore: data.atsScore,
+        keywordsToAdd: data.keywordsToAdd,
+        matchedKeywords: data.matchedKeywords,
+        suggestions: data.suggestions,
+        reportId: data.reportId,
+      })
+      toast.success("Resume analysis complete!")
+    } catch (error) {
+      console.error('Error analyzing resume:', error)
+      toast.error("Failed to analyze resume. Please try again.")
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
   const handleExportPDF = () => {
@@ -152,38 +169,46 @@ export function AIOptimizer() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.5, type: "spring" }}
-                    className="text-5xl font-bold bg-gradient-to-r from-blue-500 via-primary to-success bg-clip-text text-transparent"
-                  >
-                    {atsScore}%
-                  </motion.div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {atsScore >= 80 ? "Excellent Match" : atsScore >= 60 ? "Good Match" : "Needs Improvement"}
-                  </p>
+              {results ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.5, type: "spring" }}
+                        className="text-5xl font-bold bg-gradient-to-r from-blue-500 via-primary to-success bg-clip-text text-transparent"
+                      >
+                        {results.atsScore}%
+                      </motion.div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {results.atsScore >= 80 ? "Excellent Match" : results.atsScore >= 60 ? "Good Match" : "Needs Improvement"}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        {results.matchedKeywords.length} Keywords Matched
+                      </Badge>
+                      <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        {results.keywordsToAdd.length} Keywords Missing
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Overall Score</span>
+                      <span className="font-medium">{results.atsScore}%</span>
+                    </div>
+                    <Progress value={results.atsScore} className="h-3" />
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  <p>Analyze your resume to see your ATS compatibility score</p>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <Badge variant="outline" className="bg-success/10 text-success border-success/20">
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    {matchedKeywords.length} Keywords Matched
-                  </Badge>
-                  <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {keywordsToAdd.length} Keywords Missing
-                  </Badge>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Overall Score</span>
-                  <span className="font-medium">{atsScore}%</span>
-                </div>
-                <Progress value={atsScore} className="h-3" />
-              </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -205,45 +230,29 @@ export function AIOptimizer() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {["high", "medium", "low"].map((priority) => (
-                  <div key={priority} className="space-y-2">
-                    <div className="flex items-center gap-2">
+              {results ? (
+                <div className="flex flex-wrap gap-2">
+                  {results.keywordsToAdd.map((keyword, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
                       <Badge 
-                        variant="outline"
-                        className={
-                          priority === "high" 
-                            ? "bg-destructive/10 text-destructive border-destructive/20" 
-                            : priority === "medium"
-                            ? "bg-primary/10 text-primary border-primary/20"
-                            : "bg-muted text-muted-foreground"
-                        }
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
                       >
-                        {priority.toUpperCase()} PRIORITY
+                        {keyword}
                       </Badge>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {keywordsToAdd
-                        .filter((k) => k.priority === priority)
-                        .map((item, index) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: index * 0.1 }}
-                          >
-                            <Badge 
-                              variant="secondary"
-                              className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-                            >
-                              {item.keyword}
-                            </Badge>
-                          </motion.div>
-                        ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  <p>Analyze your resume to see keyword recommendations</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -265,21 +274,27 @@ export function AIOptimizer() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {matchedKeywords.map((keyword, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Badge className="bg-success/10 text-success border-success/20">
-                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                      {keyword}
-                    </Badge>
-                  </motion.div>
-                ))}
-              </div>
+              {results ? (
+                <div className="flex flex-wrap gap-2">
+                  {results.matchedKeywords.map((keyword, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <Badge className="bg-success/10 text-success border-success/20">
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        {keyword}
+                      </Badge>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  <p>Analyze your resume to see matched keywords</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -301,22 +316,28 @@ export function AIOptimizer() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-3">
-                {suggestions.map((suggestion, index) => (
-                  <motion.li
-                    key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <div className="mt-0.5 p-1 rounded-full bg-primary/10">
-                      <div className="h-2 w-2 rounded-full bg-primary" />
-                    </div>
-                    <span className="text-sm flex-1">{suggestion}</span>
-                  </motion.li>
-                ))}
-              </ul>
+              {results ? (
+                <ul className="space-y-3">
+                  {results.suggestions.map((suggestion, index) => (
+                    <motion.li
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                    >
+                      <div className="mt-0.5 p-1 rounded-full bg-primary/10">
+                        <div className="h-2 w-2 rounded-full bg-primary" />
+                      </div>
+                      <span className="text-sm flex-1">{suggestion}</span>
+                    </motion.li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  <p>Analyze your resume to see optimization suggestions</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

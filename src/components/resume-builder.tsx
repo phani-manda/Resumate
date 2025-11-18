@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Trash2, Download, Eye, Sparkles } from "lucide-react"
+import { Plus, Trash2, Download, Sparkles, Upload, Save } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 
 interface Experience {
   id: string
@@ -61,8 +62,56 @@ export function ResumeBuilder() {
   })
 
   const [newSkill, setNewSkill] = useState("")
-  const [showPreview, setShowPreview] = useState(false)
   const [optimizationScore, setOptimizationScore] = useState(0)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    try {
+      // For now, just read text content - in production you'd parse PDF/DOCX
+      const text = await file.text()
+      // Simple parsing - extract email, phone, etc.
+      const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/)
+      const phoneMatch = text.match(/\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/)
+      
+      setResumeData(prev => ({
+        ...prev,
+        personalInfo: {
+          ...prev.personalInfo,
+          email: emailMatch?.[0] || prev.personalInfo.email,
+          phone: phoneMatch?.[0] || prev.personalInfo.phone,
+        },
+        summary: text.slice(0, 500), // First 500 chars as summary
+      }))
+    } catch (error) {
+      console.error('Error uploading file:', error)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleSaveResume = async () => {
+    setIsSaving(true)
+    try {
+      const response = await fetch('/api/resumes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(resumeData),
+      })
+      if (response.ok) {
+        alert('Resume saved successfully!')
+      }
+    } catch (error) {
+      console.error('Error saving resume:', error)
+      alert('Failed to save resume')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   const addExperience = () => {
     setResumeData({
@@ -576,10 +625,127 @@ export function ResumeBuilder() {
           </Card>
 
           <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="text-lg">Resume Preview</CardTitle>
+              <CardDescription>Live preview of your resume</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="max-h-[400px] overflow-y-auto rounded-md border bg-muted/20 p-4">
+                <div className="space-y-4 text-sm">
+                  {resumeData.personalInfo.fullName && (
+                    <div>
+                      <h3 className="font-bold text-lg">{resumeData.personalInfo.fullName}</h3>
+                      {resumeData.personalInfo.email && (
+                        <p className="text-muted-foreground text-xs">{resumeData.personalInfo.email}</p>
+                      )}
+                      {resumeData.personalInfo.phone && (
+                        <p className="text-muted-foreground text-xs">{resumeData.personalInfo.phone}</p>
+                      )}
+                      {resumeData.personalInfo.location && (
+                        <p className="text-muted-foreground text-xs">{resumeData.personalInfo.location}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {resumeData.summary && (
+                    <>
+                      <div className="border-t pt-3">
+                        <h4 className="font-semibold mb-2 text-sm">Professional Summary</h4>
+                        <p className="text-muted-foreground text-xs leading-relaxed">
+                          {resumeData.summary}
+                        </p>
+                      </div>
+                    </>
+                  )}
+
+                  {resumeData.experiences.length > 0 && (
+                    <div className="border-t pt-3">
+                      <h4 className="font-semibold mb-2 text-sm">Work Experience</h4>
+                      <div className="space-y-3">
+                        {resumeData.experiences.map((exp) => (
+                          <div key={exp.id}>
+                            {exp.title && <p className="font-medium text-xs">{exp.title}</p>}
+                            {exp.company && (
+                              <p className="text-muted-foreground text-xs">
+                                {exp.company} {exp.startDate && `• ${exp.startDate}`}
+                                {exp.endDate && ` - ${exp.endDate}`}
+                              </p>
+                            )}
+                            {exp.description && (
+                              <p className="text-muted-foreground text-xs mt-1">{exp.description}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {resumeData.education.length > 0 && (
+                    <div className="border-t pt-3">
+                      <h4 className="font-semibold mb-2 text-sm">Education</h4>
+                      <div className="space-y-2">
+                        {resumeData.education.map((edu) => (
+                          <div key={edu.id}>
+                            {edu.degree && <p className="font-medium text-xs">{edu.degree}</p>}
+                            {edu.school && (
+                              <p className="text-muted-foreground text-xs">
+                                {edu.school} {edu.graduationDate && `• ${edu.graduationDate}`}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {resumeData.skills.length > 0 && (
+                    <div className="border-t pt-3">
+                      <h4 className="font-semibold mb-2 text-sm">Skills</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {resumeData.skills.map((skill, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {!resumeData.personalInfo.fullName && resumeData.experiences.length === 0 && (
+                    <p className="text-muted-foreground text-xs text-center py-8">
+                      Start filling out your resume to see a live preview
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
             <CardContent className="pt-6 space-y-3">
-              <Button className="w-full" onClick={() => setShowPreview(!showPreview)}>
-                <Eye className="h-4 w-4 mr-2" />
-                {showPreview ? "Hide" : "Show"} Preview
+              <input
+                type="file"
+                id="resume-upload"
+                className="hidden"
+                accept=".txt,.pdf,.doc,.docx"
+                onChange={handleFileUpload}
+              />
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => document.getElementById('resume-upload')?.click()}
+                disabled={isUploading}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {isUploading ? 'Uploading...' : 'Upload Resume'}
+              </Button>
+              <Button
+                className="w-full"
+                onClick={handleSaveResume}
+                disabled={isSaving}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {isSaving ? 'Saving...' : 'Save Resume'}
               </Button>
               <Button variant="outline" className="w-full">
                 <Download className="h-4 w-4 mr-2" />

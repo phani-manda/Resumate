@@ -377,7 +377,7 @@ export default function Home() {
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
               Join thousands of professionals who have already optimized their resumes with ResumeAI.
             </p>
-            <Link href="/register">
+            <Link href="/sign-up">
               <Button size="lg" variant="secondary" className="text-lg px-8">
                 Get Started for Free
                 <Sparkles className="ml-2 h-5 w-5" />

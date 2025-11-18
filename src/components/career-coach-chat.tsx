@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,21 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Send, Bot, User, Sparkles } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
-
-interface Message {
-  id: string
-  role: "user" | "assistant"
-  content: string
-  timestamp: Date
-}
-
-const SAMPLE_RESPONSES = [
-  "Great question! To make your resume stand out, focus on quantifiable achievements. Instead of 'Managed a team', try 'Led a team of 8 developers, increasing productivity by 35%'.",
-  "I'd recommend highlighting your most relevant skills at the top of your resume. Consider creating a 'Key Skills' section with 6-8 core competencies that match the job description.",
-  "For your professional summary, aim for 3-4 impactful sentences that showcase your unique value proposition. Start with your title and years of experience, then highlight 2-3 major achievements.",
-  "Action verbs are crucial! Replace passive language with strong verbs like 'spearheaded', 'implemented', 'optimized', 'orchestrated', or 'revolutionized'.",
-  "Keep your resume to 1-2 pages. Focus on the last 10-15 years of experience, and make sure every bullet point demonstrates value you brought to previous roles.",
-]
+import { useChat } from 'ai/react'
 
 const SUGGESTED_QUESTIONS = [
   "How can I improve my resume summary?",
@@ -33,16 +19,17 @@ const SUGGESTED_QUESTIONS = [
 ]
 
 export function CareerCoachChat() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "assistant",
-      content: "Hello! I'm your AI Career Coach. I'm here to help you optimize your resume, prepare for interviews, and advance your career. What would you like to know?",
-      timestamp: new Date(),
-    },
-  ])
-  const [input, setInput] = useState("")
-  const [isTyping, setIsTyping] = useState(false)
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+    api: '/api/ai/chat',
+    initialMessages: [
+      {
+        id: "1",
+        role: "assistant",
+        content: "Hello! I'm your AI Career Coach. I'm here to help you optimize your resume, prepare for interviews, and advance your career. What would you like to know?",
+      },
+    ],
+  })
+
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -51,39 +38,24 @@ export function CareerCoachChat() {
     }
   }, [messages])
 
-  const handleSend = (text?: string) => {
-    const messageText = text || input
-    if (!messageText.trim()) return
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: messageText,
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-    setInput("")
-    setIsTyping(true)
-
-    // Simulate AI response
+  const handleSendQuestion = (question: string) => {
+    // Use the official useChat API to append a message
+    // Update input value and trigger submission programmatically
+    handleInputChange({ target: { value: question } } as React.ChangeEvent<HTMLInputElement>)
+    
+    // Use requestSubmit or create a proper form submission
     setTimeout(() => {
-      const response = SAMPLE_RESPONSES[Math.floor(Math.random() * SAMPLE_RESPONSES.length)]
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: response,
-        timestamp: new Date(),
+      const form = document.querySelector('form')
+      if (form) {
+        form.requestSubmit()
       }
-      setMessages((prev) => [...prev, assistantMessage])
-      setIsTyping(false)
-    }, 1500)
+    }, 0)
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
-        <Card className="h-full flex flex-col">
+        <Card className="flex flex-col h-[calc(100vh-200px)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
@@ -91,9 +63,9 @@ export function CareerCoachChat() {
             </CardTitle>
             <CardDescription>Get personalized career advice and resume tips</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
-            <ScrollArea className="flex-1 pr-4">
-              <div className="space-y-4 pb-4">
+          <CardContent className="flex-1 flex flex-col min-h-0">
+            <ScrollArea className="flex-1 pr-4 h-full">
+              <div className="space-y-4 pb-4 min-h-0">
                 <AnimatePresence>
                   {messages.map((message) => (
                     <motion.div
@@ -120,12 +92,6 @@ export function CareerCoachChat() {
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        <p className="text-xs opacity-70 mt-2">
-                          {message.timestamp.toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
                       </div>
                       {message.role === "user" && (
                         <Avatar className="h-8 w-8 border-2 border-muted">
@@ -137,7 +103,7 @@ export function CareerCoachChat() {
                     </motion.div>
                   ))}
                 </AnimatePresence>
-                {isTyping && (
+                {isLoading && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -173,15 +139,16 @@ export function CareerCoachChat() {
               </div>
             </ScrollArea>
             <div className="flex gap-2 pt-4 border-t">
-              <Input
-                placeholder="Ask me anything about your career..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSend()}
-              />
-              <Button onClick={() => handleSend()} disabled={!input.trim()}>
-                <Send className="h-4 w-4" />
-              </Button>
+              <form onSubmit={handleSubmit} className="flex gap-2 w-full">
+                <Input
+                  placeholder="Ask me anything about your career..."
+                  value={input}
+                  onChange={handleInputChange}
+                />
+                <Button type="submit" disabled={!input.trim() || isLoading}>
+                  <Send className="h-4 w-4" />
+                </Button>
+              </form>
             </div>
           </CardContent>
         </Card>
@@ -227,7 +194,7 @@ export function CareerCoachChat() {
                 key={index}
                 variant="outline"
                 className="w-full justify-start text-left h-auto py-3"
-                onClick={() => handleSend(question)}
+                onClick={() => handleSendQuestion(question)}
               >
                 <span className="text-sm">{question}</span>
               </Button>
