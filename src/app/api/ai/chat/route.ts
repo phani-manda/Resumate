@@ -10,20 +10,51 @@ export async function POST(request: NextRequest) {
     const { userId } = await auth()
     
     if (!userId) {
-      return new Response('Unauthorized', { status: 401 })
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }), 
+        { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     const { messages } = await request.json()
 
-    const result = streamText({
+    const result = await streamText({
       model: groq('llama-3.3-70b-versatile'),
       messages,
-      system: "You are a professional career coach helping users optimize their resumes and advance their careers. Provide specific, actionable advice. Be encouraging, professional, and detail-oriented. Help users with resume writing, job search strategies, interview preparation, and career development.",
+      system: `You are an expert career coach and resume advisor with years of experience helping professionals optimize their resumes and advance their careers. 
+
+Your role is to:
+- Provide actionable, specific advice on resume optimization
+- Help users craft compelling professional summaries and achievement statements
+- Suggest relevant keywords and skills for their target roles
+- Guide them on resume formatting and structure
+- Offer interview preparation tips
+- Provide career development guidance
+
+Always be:
+- Professional yet friendly and encouraging
+- Specific with examples when possible
+- Focused on actionable improvements
+- Supportive of the user's career goals
+
+Keep responses concise but comprehensive, typically 2-4 paragraphs unless more detail is requested.`,
     })
 
     return result.toDataStreamResponse()
   } catch (error) {
     console.error('Error in chat route:', error)
-    return new Response('Internal Server Error', { status: 500 })
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to process chat request',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
   }
 }
