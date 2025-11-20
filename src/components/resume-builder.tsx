@@ -66,7 +66,7 @@ export function ResumeBuilder() {
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [resumeId, setResumeId] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null) 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Auto-save with debounce

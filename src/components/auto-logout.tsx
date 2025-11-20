@@ -11,8 +11,8 @@ const WARNING_TIME = 5 * 60 * 1000 // 5 minutes before logout
 export function AutoLogout() {
   const { signOut, isSignedIn } = useAuth()
   const router = useRouter()
-  const timeoutRef = useRef<NodeJS.Timeout>()
-  const warningTimeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastActivityRef = useRef<number>(Date.now())
 
   useEffect(() => {
