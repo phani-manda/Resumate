@@ -1,4 +1,4 @@
-import { BuilderShell } from "@/components/builder-shell"
+import { BuilderShell } from "@/components/BuilderShell"
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 

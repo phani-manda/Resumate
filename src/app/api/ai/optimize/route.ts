@@ -41,15 +41,48 @@ Return ONLY valid JSON in this exact format:
   "suggestions": ["suggestion1", "suggestion2"]
 }`
 
-    const { text } = await generateText({
-      model: groq('llama-3.3-70b-versatile'),
-      prompt,
-    })
+    // Use Groq for fast optimization analysis
+    if (!process.env.GROQ_API_KEY) {
+      return NextResponse.json(
+        { error: 'AI service not configured. Please set GROQ_API_KEY.' },
+        { status: 500 }
+      )
+    }
 
-    // Extract JSON from response (handle markdown code blocks)
+    const model = groq('llama-3.3-70b-versatile')
+    console.log('Using Groq Llama 3.3 for resume optimization')
+
+    let text
+    try {
+      const response = await generateText({
+        model,
+        prompt,
+      })
+      text = response.text
+      console.log('AI Response:', text.substring(0, 200)) // Log first 200 chars for debugging
+    } catch (aiError) {
+      console.error('AI generation error:', aiError)
+      return NextResponse.json(
+        { 
+          error: 'Failed to generate AI response',
+          details: aiError instanceof Error ? aiError.message : 'Unknown AI error'
+        },
+        { status: 500 }
+      )
+    }
+
+    // Extract JSON from response (handle markdown code blocks and extra text)
     let jsonText = text.trim()
-    if (jsonText.startsWith('```')) {
-      jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '')
+    
+    // Remove markdown code blocks
+    if (jsonText.includes('```')) {
+      jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    }
+    
+    // Try to find JSON object in the text
+    const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      jsonText = jsonMatch[0]
     }
 
     // Parse and validate AI response with error handling
@@ -59,8 +92,13 @@ Return ONLY valid JSON in this exact format:
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', parseError)
       console.error('Raw AI output:', text)
+      
+      // Try to extract meaningful data even if JSON parsing fails
       return NextResponse.json(
-        { error: 'AI response was not in valid JSON format' },
+        { 
+          error: 'AI response was not in valid JSON format',
+          rawResponse: text.substring(0, 500), // Send first 500 chars for debugging
+        },
         { status: 500 }
       )
     }
@@ -113,8 +151,13 @@ Return ONLY valid JSON in this exact format:
     })
   } catch (error) {
     console.error('Error in optimize route:', error)
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json(
-      { error: 'Failed to optimize resume' },
+      { 
+        error: 'Failed to optimize resume',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        hint: 'Check if GOOGLE_GENERATIVE_AI_API_KEY is set correctly'
+      },
       { status: 500 }
     )
   }

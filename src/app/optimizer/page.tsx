@@ -1,4 +1,4 @@
-import { OptimizerShell } from "@/components/optimizer-shell"
+import { OptimizerShell } from "@/components/OptimizerShell"
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 

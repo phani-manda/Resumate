@@ -1,4 +1,4 @@
-import { CoachShell } from "@/components/coach-shell"
+import { CoachShell } from "@/components/CoachShell"
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 

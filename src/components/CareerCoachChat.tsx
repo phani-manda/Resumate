@@ -2,12 +2,13 @@
 
 import { useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Send, Bot, User, Sparkles } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Send, Bot, User, Sparkles, AlertCircle } from 'lucide-react'
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
+import { ScrollArea } from '@/components/ui/ScrollArea'
+import { Alert, AlertDescription } from '@/components/ui/Alert'
 import { useChat } from 'ai/react'
 
 const SUGGESTED_QUESTIONS = [
@@ -19,7 +20,7 @@ const SUGGESTED_QUESTIONS = [
 ]
 
 export function CareerCoachChat() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
     api: '/api/ai/chat',
     initialMessages: [
       {
@@ -28,6 +29,9 @@ export function CareerCoachChat() {
         content: "Hello! I'm your AI Career Coach. I'm here to help you optimize your resume, prepare for interviews, and advance your career. What would you like to know?",
       },
     ],
+    onError: (error) => {
+      console.error('Chat error:', error)
+    },
   })
 
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -50,7 +54,7 @@ export function CareerCoachChat() {
   }
 
   return (
-    <div className="grid h-[calc(100vh-8rem)] grid-cols-1 gap-6 lg:grid-cols-3">
+    <div className="grid h-[calc(100vh-10rem)] grid-cols-1 gap-6 lg:grid-cols-3">
       {/* Main Chat Panel - Fixed height with internal scroll */}
       <div className="lg:col-span-2">
         <Card className="flex h-full flex-col">
@@ -63,9 +67,24 @@ export function CareerCoachChat() {
           </CardHeader>
           
           <CardContent className="flex min-h-0 flex-1 flex-col p-0">
-            {/* Scrollable Messages Area */}
-            <ScrollArea className="flex-1 px-6 py-4">
-              <div className="min-h-0 space-y-4 pb-4">
+            {/* Error Alert - Fixed */}
+            {error && (
+              <div className="flex-shrink-0">
+                <Alert variant="destructive" className="mx-6 mt-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {error.message === 'Unauthorized' 
+                      ? 'Please sign in to use the career coach.' 
+                      : 'Failed to connect to AI service. Please try again.'}
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+            
+            {/* Scrollable Messages Area - Only this scrolls */}
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="space-y-4 px-6 py-4">
                 <AnimatePresence>
                   {messages.map((message) => (
                     <motion.div
@@ -138,9 +157,10 @@ export function CareerCoachChat() {
                 )}
                 <div ref={scrollRef} />
               </div>
-            </ScrollArea>
+              </ScrollArea>
+            </div>
             
-            {/* Fixed Input Area */}
+            {/* Fixed Input Area - Stays at bottom */}
             <div className="flex-shrink-0 border-t px-6 py-4">
               <form onSubmit={handleSubmit} className="flex w-full gap-2">
                 <Input

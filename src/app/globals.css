@@ -4,65 +4,149 @@
 
 @layer base {
   :root {
-    --radius: 0.625rem;
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --radius: 0.75rem;
+    
+    /* Default to dark mode values mostly, or standard light mode if needed. 
+       DESIGN REPORT SPECIFIED DARK AESTHETIC PRIMARILY. */
+    --background: 222 47% 95%; /* Light gray for light mode fallback */
+    --foreground: 222 47% 4%; /* Dark text */
+
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 222 47% 4%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 250 100% 50%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --popover-foreground: 222 47% 4%;
+
+    --primary: 258 90% 66%; /* Purple */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 16% 90%;
+    --muted-foreground: 215 16% 40%;
+
+    --accent: 215 16% 90%;
+    --accent-foreground: 222 47% 4%;
+
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 250 100% 50%;
-    --chart-1: 250 100% 50%;
-    --chart-2: 145 70% 45%;
-    --chart-3: 25 95% 53%;
-    --chart-4: 280 75% 55%;
-    --chart-5: 175 70% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 258 90% 66%;
+
+    --chart-1: 258 90% 66%;
+    --chart-2: 199 89% 48%;
+    --chart-3: 151 55% 42%;
+    --chart-4: 32 95% 44%;
+    --chart-5: 280 75% 55%;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 250 100% 60%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 50.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 250 100% 60%;
-    --chart-1: 250 100% 60%;
-    --chart-2: 145 70% 50%;
-    --chart-3: 25 95% 58%;
+    --background: 0 0% 0%; /* Pure Black */
+    --foreground: 0 0% 100%; /* Pure White */
+
+    --card: 0 0% 8%; /* Dark Gray #141414 */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 24 100% 50%; /* Orange - #ff6600 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 20%; /* Dark Gray */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217 33% 17%; /* Muted dark blue-gray */
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 258 90% 66%;
+
+    --chart-1: 258 90% 66%;
+    --chart-2: 199 89% 48%;
+    --chart-3: 151 55% 42%;
     --chart-4: 280 75% 60%;
     --chart-5: 175 70% 55%;
   }
+}
 
+@layer base {
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl;
+  }
+  
+  .glass-card {
+     @apply bg-card/40 backdrop-blur-md border border-border/50 shadow-sm transition-all hover:bg-card/60 hover:border-primary/30;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500;
+  }
+  
+  .text-gradient-blue {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400;
+  }
+}
+  /* Futuristic UI Utilities */
+  .futuristic-page {
+    @apply bg-black text-white;
+  }
+
+  .futuristic-container {
+    @apply bg-neutral-900 rounded-3xl border border-neutral-800;
+  }
+
+  .futuristic-card {
+    @apply bg-neutral-900/80 backdrop-blur-xl rounded-2xl border border-neutral-800 shadow-2xl;
+  }
+
+  .futuristic-pill {
+    @apply bg-neutral-800/50 backdrop-blur-md rounded-full border border-neutral-700 px-6 py-2.5 text-sm font-medium text-neutral-300 hover:bg-neutral-700/50 hover:text-white transition-all;
+  }
+
+  .futuristic-pill-active {
+    @apply bg-white text-black border-white;
+  }
+
+  .futuristic-nav-icon {
+    @apply w-12 h-12 rounded-2xl flex items-center justify-center text-neutral-400 hover:text-white hover:bg-neutral-800/50 transition-all cursor-pointer;
+  }
+
+  .futuristic-nav-icon-active {
+    @apply bg-orange-500 text-white;
+  }
+
+  .futuristic-cta {
+    @apply bg-white text-black px-8 py-3 rounded-full font-semibold hover:bg-orange-500 hover:text-white transition-all shadow-lg hover:shadow-orange-500/50;
+  }
+
+  .futuristic-badge {
+    @apply bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider;
+  }
+
+  .tech-glow {
+    @apply shadow-[0_0_30px_-5px_rgba(255,102,0,0.3)];
+  }
+
+  .tech-border {
+    @apply border border-neutral-800 hover:border-orange-500/50 transition-colors;
+  }

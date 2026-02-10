@@ -1,4 +1,4 @@
-import { DashboardShell } from "@/components/dashboard-shell"
+import { DashboardShell } from "@/components/DashboardShell"
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 
