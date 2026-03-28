@@ -7,20 +7,22 @@ import { Variants } from 'framer-motion'
 export const buttonVariants: Variants = {
   initial: {
     scale: 1,
-    boxShadow: '0 0 0 0 rgba(124, 58, 237, 0)',
+    boxShadow: '0 0 0 0 rgba(255, 132, 32, 0)',
   },
   hover: {
-    scale: 1.02,
-    boxShadow: '0 4px 20px -4px rgba(124, 58, 237, 0.4)',
-    transition: { duration: 0.2, ease: 'easeOut' },
+    scale: 1.025,
+    y: -2,
+    boxShadow: '0 16px 32px -12px rgba(255, 132, 32, 0.38)',
+    transition: { type: 'spring', stiffness: 320, damping: 20 },
   },
   tap: {
     scale: 0.98,
-    boxShadow: '0 2px 10px -2px rgba(124, 58, 237, 0.3)',
+    y: 1,
+    boxShadow: '0 8px 18px -8px rgba(255, 132, 32, 0.24)',
     transition: { duration: 0.1 },
   },
   focus: {
-    boxShadow: '0 0 0 3px rgba(124, 58, 237, 0.3)',
+    boxShadow: '0 0 0 3px rgba(255, 132, 32, 0.22)',
     transition: { duration: 0.15 },
   },
   disabled: {
@@ -52,7 +54,7 @@ export const primaryButtonVariants: Variants = {
   ...buttonVariants,
   hover: {
     ...buttonVariants.hover,
-    boxShadow: '0 0 30px -4px rgba(124, 58, 237, 0.6)',
+    boxShadow: '0 18px 38px -12px rgba(255, 132, 32, 0.44)',
   },
 }
 
@@ -66,20 +68,20 @@ export const ghostButtonVariants: Variants = {
 // Input field micro-interactions (8 behaviors)
 export const inputVariants: Variants = {
   initial: {
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0)',
     boxShadow: 'none',
   },
   focus: {
-    borderColor: 'rgba(124, 58, 237, 0.5)',
-    boxShadow: '0 0 0 3px rgba(124, 58, 237, 0.1)',
+    borderColor: 'rgba(255, 132, 32, 0.45)',
+    boxShadow: '0 0 0 3px rgba(255, 132, 32, 0.12)',
     transition: { duration: 0.15 },
   },
   hover: {
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 132, 32, 0.16)',
     transition: { duration: 0.15 },
   },
   filled: {
-    borderColor: 'rgba(124, 58, 237, 0.3)',
+    borderColor: 'rgba(255, 132, 32, 0.24)',
   },
   error: {
     borderColor: 'rgba(239, 68, 68, 0.5)',
@@ -104,12 +106,13 @@ export const inputVariants: Variants = {
 export const cardVariants: Variants = {
   initial: {
     y: 0,
-    boxShadow: '0 4px 20px -4px rgba(0, 0, 0, 0.3)',
+    boxShadow: '0 12px 28px -12px rgba(0, 0, 0, 0.22)',
   },
   hover: {
-    y: -4,
-    boxShadow: '0 20px 40px -8px rgba(0, 0, 0, 0.4)',
-    transition: { duration: 0.3, ease: 'easeOut' },
+    y: -6,
+    scale: 1.01,
+    boxShadow: '0 26px 48px -18px rgba(0, 0, 0, 0.3)',
+    transition: { type: 'spring', stiffness: 260, damping: 24 },
   },
   tap: {
     y: -2,
@@ -121,13 +124,13 @@ export const cardVariants: Variants = {
 // Glass card with border glow
 export const glassCardVariants: Variants = {
   initial: {
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    boxShadow: '0 8px 32px -8px rgba(0, 0, 0, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0)',
+    boxShadow: '0 12px 30px -12px rgba(0, 0, 0, 0.22)',
   },
   hover: {
-    borderColor: 'rgba(124, 58, 237, 0.3)',
-    boxShadow: '0 20px 50px -10px rgba(0, 0, 0, 0.5), 0 0 30px -5px rgba(124, 58, 237, 0.2)',
-    transition: { duration: 0.3 },
+    borderColor: 'rgba(255, 132, 32, 0.18)',
+    boxShadow: '0 26px 52px -18px rgba(0, 0, 0, 0.34), 0 0 30px -14px rgba(255, 132, 32, 0.28)',
+    transition: { type: 'spring', stiffness: 240, damping: 22 },
   },
 }
 
@@ -176,20 +179,20 @@ export const iconButtonVariants: Variants = {
 export const fabVariants: Variants = {
   initial: {
     scale: 1,
-    boxShadow: '0 4px 14px -2px rgba(124, 58, 237, 0.4)',
+    boxShadow: '0 8px 22px -8px rgba(255, 132, 32, 0.36)',
   },
   hover: {
     scale: 1.1,
-    boxShadow: '0 6px 20px -2px rgba(124, 58, 237, 0.5)',
-    transition: { duration: 0.2 },
+    boxShadow: '0 14px 28px -10px rgba(255, 132, 32, 0.44)',
+    transition: { type: 'spring', stiffness: 320, damping: 18 },
   },
   tap: { scale: 0.95 },
   pulse: {
     scale: [1, 1.05, 1],
     boxShadow: [
-      '0 4px 14px -2px rgba(124, 58, 237, 0.4)',
-      '0 8px 25px -2px rgba(124, 58, 237, 0.6)',
-      '0 4px 14px -2px rgba(124, 58, 237, 0.4)',
+      '0 4px 14px -2px rgba(255, 132, 32, 0.36)',
+      '0 8px 25px -2px rgba(255, 132, 32, 0.5)',
+      '0 4px 14px -2px rgba(255, 132, 32, 0.36)',
     ],
     transition: {
       duration: 2,

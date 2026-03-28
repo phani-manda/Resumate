@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/Sonner";
 import { ClerkProvider } from "@clerk/nextjs";
 import { AutoLogout } from "@/components/AutoLogout";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
 const outfit = Outfit({ 
   subsets: ["latin"],
@@ -77,8 +78,14 @@ export default function RootLayout({
             <Toaster 
               position="bottom-right"
               toastOptions={{
-                className: "bg-neutral-900 border-neutral-800 text-white",
+                className:
+                  "border border-transparent bg-[hsl(var(--card))]/92 text-[hsl(var(--foreground))] shadow-[var(--shadow-md)] backdrop-blur-2xl",
                 duration: 4000,
+              }}
+              icons={{
+                success: <CheckCircle2 className="text-orange-400" size={16} />,
+                error: <XCircle className="text-red-400" size={16} />,
+                loading: <Loader2 className="animate-spin text-orange-300" size={16} />,
               }}
             />
           </ThemeProvider>

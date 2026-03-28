@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { UserButton } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
+import { ThemeToggle } from "@/components/ThemeToggle"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -32,86 +33,87 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     ]
 
     return (
-        <div className="flex flex-col h-screen bg-black overflow-hidden">
+        <div className="flex h-screen flex-col overflow-hidden bg-background">
             {/* Top Navigation Bar */}
-            <nav className="hidden lg:flex fixed top-0 left-0 right-0 h-20 items-center justify-between px-8 bg-neutral-950 border-b border-neutral-800 z-50">
-                {/* Logo */}
-                <Link href="/" className="w-14 h-14 rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700 flex items-center justify-center hover:border-orange-500 transition-all group">
-                    <span className="text-2xl font-black text-white group-hover:text-orange-500 transition-colors">R</span>
-                </Link>
+            <nav className="fixed left-0 right-0 top-0 z-50 hidden bg-background/92 lg:flex">
+                <div className="page-frame flex h-24 items-center justify-between gap-6">
+                    <Link href="/" className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card/78 shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all group hover:-translate-y-0.5 xl:h-16 xl:w-16">
+                        <span className="text-2xl font-black text-foreground transition-colors group-hover:text-orange-500">R</span>
+                    </Link>
 
-                {/* Horizontal Cylindrical Navigation Container */}
-                <div className="flex-1 flex justify-center">
-                    <div className="relative">
-                        {/* Glow effect */}
-                        <div className="absolute inset-0 bg-white/10 blur-xl rounded-full" />
-                        {/* Main container */}
-                        <div className="relative bg-neutral-900 rounded-full border-2 border-white px-8 py-4 backdrop-blur-sm shadow-2xl shadow-white/20">
-                            <div className="flex items-center gap-4">
-                            {navItems.map((item) => {
-                                const isActive = pathname === item.href
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className={cn(
-                                            "flex items-center gap-2 px-6 py-3 rounded-full transition-all font-medium",
-                                            isActive
-                                                ? "bg-orange-500 text-white shadow-[0_0_20px_-5px_rgba(255,102,0,0.5)]"
-                                                : "text-neutral-400 hover:text-white hover:bg-neutral-800/50"
-                                        )}
-                                    >
-                                        <item.icon className="w-5 h-5" />
-                                        <span>{item.label}</span>
-                                    </Link>
-                                )
-                            })}
+                    <div className="flex flex-1 justify-center">
+                        <div className="relative">
+                            <div className="absolute inset-0 rounded-full bg-orange-500/10 blur-2xl" />
+                            <div className="relative rounded-[2rem] bg-card/84 px-4 py-3 shadow-[var(--shadow-sm)]">
+                                <div className="flex items-center gap-3">
+                                {navItems.map((item) => {
+                                    const isActive = pathname === item.href
+                                    return (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className={cn(
+                                                "flex items-center gap-2.5 rounded-full px-5 py-3 text-sm font-medium transition-all xl:px-6",
+                                                isActive
+                                                    ? "bg-orange-500 text-white shadow-[0_0_20px_-5px_rgba(255,102,0,0.5)]"
+                                                    : "text-muted-foreground hover:bg-background/80 hover:text-foreground"
+                                            )}
+                                        >
+                                            <item.icon className="h-5 w-5" />
+                                            <span>{item.label}</span>
+                                        </Link>
+                                    )
+                                })}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Right Side Actions */}
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-neutral-800 border-2 border-neutral-700 flex items-center justify-center overflow-hidden hover:border-orange-500 transition-colors">
-                        {mounted ? (
-                            <UserButton
-                                appearance={{
-                                    elements: {
-                                        avatarBox: "h-10 w-10",
-                                    }
-                                }}
-                            />
-                        ) : (
-                            <User className="h-5 w-5 text-neutral-500" />
-                        )}
+                    <div className="flex items-center gap-4">
+                        <ThemeToggle />
+                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-card/82 shadow-[var(--shadow-sm)]">
+                            {mounted ? (
+                                <UserButton
+                                    appearance={{
+                                        elements: {
+                                            avatarBox: "h-10 w-10",
+                                        }
+                                    }}
+                                />
+                            ) : (
+                                <User className="h-5 w-5 text-neutral-500" />
+                            )}
+                        </div>
                     </div>
                 </div>
             </nav>
 
             {/* Main Content Wrapper */}
-            <main className="pt-20 flex-1 min-h-0 overflow-hidden lg:flex hidden flex-col bg-black">
+            <main className="hidden flex-1 min-h-0 overflow-hidden bg-background pt-24 lg:flex lg:flex-col">
                 <div className="flex-1 min-h-0 overflow-hidden">
                     {children}
                 </div>
             </main>
 
             {/* Mobile Layout */}
-            <div className="lg:hidden flex flex-col h-screen w-full bg-black">
+            <div className="lg:hidden flex h-screen w-full flex-col bg-background">
                 {/* Top Mobile Bar */}
-                <div className="h-16 flex-shrink-0 border-b border-neutral-800 bg-neutral-950 flex items-center justify-between px-4">
+                <div className="flex h-[72px] flex-shrink-0 items-center justify-between bg-background/92 px-5">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
-                            <span className="text-lg font-black text-white">R</span>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-card/80 shadow-[var(--shadow-sm)]">
+                            <span className="text-lg font-black text-foreground">R</span>
                         </div>
-                        <span className="font-bold text-white">Resumate</span>
+                        <span className="font-bold text-foreground">Resumate</span>
                     </div>
-                    <button 
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-                        className="p-2 hover:bg-neutral-800 rounded-lg transition-colors text-white"
-                    >
-                        {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <ThemeToggle />
+                        <button 
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+                            className="rounded-xl p-2 text-foreground transition-colors hover:bg-card"
+                        >
+                            {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Mobile Content */}
@@ -123,11 +125,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {/* Mobile Sidebar Overlay */}
             {isSidebarOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
-                    <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
-                    <div className="absolute left-0 top-0 bottom-0 w-3/4 max-w-xs bg-neutral-950 border-r border-neutral-800 p-6 flex flex-col gap-6">
+                    <div className="absolute inset-0 bg-black/35" onClick={() => setIsSidebarOpen(false)} />
+                    <div className="absolute bottom-0 left-0 top-0 flex w-3/4 max-w-xs flex-col gap-6 bg-card/94 p-6 shadow-[var(--shadow-lg)]">
                         <div className="flex items-center justify-between">
-                            <span className="font-bold text-xl text-white">Menu</span>
-                            <button onClick={() => setIsSidebarOpen(false)} className="text-neutral-400 hover:text-white">
+                            <span className="font-bold text-xl text-foreground">Menu</span>
+                            <button onClick={() => setIsSidebarOpen(false)} className="text-muted-foreground hover:text-foreground">
                                 <X className="h-6 w-6" />
                             </button>
                         </div>
@@ -141,7 +143,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                         "flex items-center gap-3 p-3 rounded-2xl transition-colors",
                                         pathname === item.href 
                                             ? "bg-orange-500 text-white" 
-                                            : "hover:bg-neutral-800 text-neutral-400 hover:text-white"
+                                            : "bg-transparent text-muted-foreground hover:bg-background/90 hover:text-foreground"
                                     )}
                                 >
                                     <item.icon className="h-5 w-5" />
@@ -149,7 +151,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                                 </Link>
                             ))}
                         </nav>
-                        <div className="mt-auto pt-4 border-t border-neutral-800">
+                        <div className="mt-auto pt-4">
                             {mounted && <UserButton showName />}
                         </div>
                     </div>

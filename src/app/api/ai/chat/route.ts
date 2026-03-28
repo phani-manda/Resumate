@@ -1,5 +1,5 @@
 import { groq } from '@ai-sdk/groq'
-import { streamText } from 'ai'
+import { convertToCoreMessages, streamText, type Message } from 'ai'
 import { auth } from '@clerk/nextjs/server'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate request body
-    let messages
+    let messages: Message[]
     let sessionId: string | undefined
     let resumeContext: string | undefined
     
@@ -41,6 +41,25 @@ export async function POST(request: NextRequest) {
         return new Response(
           JSON.stringify({ error: 'Invalid messages format' }), 
           { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        )
+      }
+
+      const hasValidUserMessage = messages.some(
+        (message) =>
+          typeof message === 'object' &&
+          message !== null &&
+          typeof message.role === 'string' &&
+          typeof message.content === 'string' &&
+          message.content.trim().length > 0
+      )
+
+      if (!hasValidUserMessage) {
+        return new Response(
+          JSON.stringify({ error: 'At least one valid text message is required' }),
+          {
             status: 400,
             headers: { 'Content-Type': 'application/json' }
           }
@@ -125,9 +144,33 @@ Keep responses concise but comprehensive, typically 2-4 paragraphs unless more d
     }
 
     // Stream AI response
+    const coreMessages = convertToCoreMessages(
+      messages
+        .filter(
+          (message): message is Message =>
+            typeof message?.role === 'string' &&
+            typeof message?.content === 'string' &&
+            message.content.trim().length > 0
+        )
+        .map((message) => ({
+          ...message,
+          content: message.content.trim(),
+        }))
+    )
+
+    if (coreMessages.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No valid chat messages were provided.' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
     const result = await streamText({
       model: model,
-      messages,
+      messages: coreMessages,
       system: systemPrompt,
       onFinish: async ({ text }) => {
         // Save the assistant's response after streaming completes
@@ -153,7 +196,11 @@ Keep responses concise but comprehensive, typically 2-4 paragraphs unless more d
     
     return response
   } catch (error) {
-    console.error('Error in chat route:', error)
+    console.error('Error in chat route:', error instanceof Error ? {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    } : error)
     return new Response(
       JSON.stringify({ 
         error: 'Failed to process chat request. Please try again.',

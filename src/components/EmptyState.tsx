@@ -130,7 +130,7 @@ export function EmptyState({
       initial="hidden"
       animate="visible"
       className={cn(
-        "flex flex-col items-center justify-center text-center",
+        "glass-panel flex flex-col items-center justify-center rounded-[28px] text-center shadow-[var(--shadow-md)]",
         compact ? "px-4 py-8" : "px-6 py-16",
         className
       )}
@@ -139,7 +139,7 @@ export function EmptyState({
     >
       <div
         className={cn(
-          "relative mb-6 flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 shadow-lg",
+          "relative mb-6 flex items-center justify-center rounded-[24px] bg-card/78 shadow-[var(--shadow-sm)]",
           compact ? "h-16 w-16" : "h-20 w-20",
           preset.glowColor
         )}
@@ -174,6 +174,7 @@ export function EmptyState({
           onClick={handleCtaClick}
           className={cn(
             "mt-6 gap-2 bg-gradient-to-r from-orange-500 to-orange-300 text-white shadow-[0_0_24px_-8px_rgba(255,122,26,0.55)] hover:from-orange-400 hover:to-orange-200",
+            "rounded-full",
             compact ? "text-sm" : ""
           )}
         >
@@ -198,7 +199,7 @@ export function InlineEmptyState({
   className,
 }: InlineEmptyStateProps) {
   return (
-    <div className={cn("flex flex-col items-center px-4 py-6 text-center", className)}>
+    <div className={cn("surface-soft flex flex-col items-center rounded-[24px] px-4 py-6 text-center", className)}>
       <p className="text-sm text-zinc-400">{message}</p>
       {ctaText && onCtaClick && (
         <Button

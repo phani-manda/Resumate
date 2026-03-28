@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { TrendingUp, FileText, Eye, Download, Target, Award } from "lucide-react"
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { cn } from "@/lib/utils"
@@ -39,12 +39,14 @@ const skillDistribution = [
 const COLORS = ["#ff7a1a", "#ffb56b", "#9a5a2e", "#f5d0a1"]
 
 function BentoCard({ children, className, delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) {
+  const reduceMotion = useReducedMotion()
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, delay }}
-      className={cn("glass-panel rounded-3xl p-6 flex flex-col justify-between overflow-hidden relative group border-white/5", className)}
+      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: reduceMotion ? 0 : 0.28, delay: reduceMotion ? 0 : delay }}
+      className={cn("glass-panel gpu-lite relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-[30px] p-7 xl:p-8 group", className)}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       {children}
@@ -53,68 +55,70 @@ function BentoCard({ children, className, delay = 0 }: { children: React.ReactNo
 }
 
 export function StatsDashboard() {
+  const reduceMotion = useReducedMotion()
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-6">
+    <div className="grid grid-cols-1 gap-6 pb-8 md:grid-cols-2 lg:grid-cols-4 xl:gap-8">
       {/* Overview Stats - Top Row */}
       <BentoCard delay={0.1}>
         <div className="flex justify-between items-start mb-4">
-          <div className="p-3 bg-orange-500/15 rounded-2xl text-orange-300">
+          <div className="rounded-2xl bg-orange-500/15 p-3 text-orange-300">
             <Eye className="h-6 w-6" />
           </div>
-          <span className="text-xs font-medium bg-orange-500/10 text-orange-200 px-2 py-1 rounded-full flex items-center gap-1">
+          <span className="flex items-center gap-1 rounded-full bg-orange-500/10 px-2 py-1 text-xs font-medium text-orange-300">
             <TrendingUp className="h-3 w-3" /> +16%
           </span>
         </div>
         <div>
-          <h3 className="text-4xl font-bold text-white mb-1">1,034</h3>
-          <p className="text-sm text-zinc-400">Total Profile Views</p>
+          <h3 className="mb-1 text-4xl font-bold text-foreground">1,034</h3>
+          <p className="text-sm text-muted-foreground">Total Profile Views</p>
         </div>
       </BentoCard>
 
       <BentoCard delay={0.2}>
         <div className="flex justify-between items-start mb-4">
-          <div className="p-3 bg-orange-500/15 rounded-2xl text-orange-300">
+          <div className="rounded-2xl bg-orange-500/15 p-3 text-orange-300">
             <Download className="h-6 w-6" />
           </div>
-          <span className="text-xs font-medium bg-orange-500/10 text-orange-200 px-2 py-1 rounded-full flex items-center gap-1">
+          <span className="flex items-center gap-1 rounded-full bg-orange-500/10 px-2 py-1 text-xs font-medium text-orange-300">
             <TrendingUp className="h-3 w-3" /> +23%
           </span>
         </div>
         <div>
-          <h3 className="text-4xl font-bold text-white mb-1">234</h3>
-          <p className="text-sm text-zinc-400">Resume Downloads</p>
+          <h3 className="mb-1 text-4xl font-bold text-foreground">234</h3>
+          <p className="text-sm text-muted-foreground">Resume Downloads</p>
         </div>
       </BentoCard>
 
       <BentoCard delay={0.3}>
         <div className="flex justify-between items-start mb-4">
-          <div className="p-3 bg-orange-500/15 rounded-2xl text-orange-300">
+          <div className="rounded-2xl bg-orange-500/15 p-3 text-orange-300">
             <Target className="h-6 w-6" />
           </div>
         </div>
         <div>
-          <h3 className="text-4xl font-bold text-white mb-1">87<span className="text-lg text-zinc-500 font-normal">/100</span></h3>
-          <p className="text-sm text-zinc-400">Avg. ATS Score</p>
+          <h3 className="mb-1 text-4xl font-bold text-foreground">87<span className="text-lg font-normal text-muted-foreground">/100</span></h3>
+          <p className="text-sm text-muted-foreground">Avg. ATS Score</p>
         </div>
       </BentoCard>
 
       <BentoCard delay={0.4}>
         <div className="flex justify-between items-start mb-4">
-          <div className="p-3 bg-orange-500/15 rounded-2xl text-orange-300">
+          <div className="rounded-2xl bg-orange-500/15 p-3 text-orange-300">
             <Award className="h-6 w-6" />
           </div>
         </div>
         <div>
-          <h3 className="text-4xl font-bold text-white mb-1">4.8<span className="text-lg text-zinc-500 font-normal">/5.0</span></h3>
-          <p className="text-sm text-zinc-400">AI Quality Rating</p>
+          <h3 className="mb-1 text-4xl font-bold text-foreground">4.8<span className="text-lg font-normal text-muted-foreground">/5.0</span></h3>
+          <p className="text-sm text-muted-foreground">AI Quality Rating</p>
         </div>
       </BentoCard>
 
       {/* Main Charts - Middle Section */}
-      <BentoCard className="md:col-span-2 lg:col-span-3 min-h-[400px]" delay={0.5}>
+      <BentoCard className="min-h-[440px] md:col-span-2 lg:col-span-3 xl:min-h-[480px]" delay={0.5}>
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-white">Views Overview</h3>
-          <p className="text-sm text-zinc-400">Monthly traffic analysis</p>
+          <h3 className="text-lg font-semibold text-foreground">Views Overview</h3>
+          <p className="text-sm text-muted-foreground">Monthly traffic analysis</p>
         </div>
         <div className="flex-1 w-full min-h-0">
           <ResponsiveContainer width="100%" height="100%">
@@ -143,10 +147,10 @@ export function StatsDashboard() {
         </div>
       </BentoCard>
 
-      <BentoCard className="md:col-span-1 min-h-[400px]" delay={0.6}>
+      <BentoCard className="min-h-[440px] md:col-span-1 xl:min-h-[480px]" delay={0.6}>
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-white">Skill Mix</h3>
-          <p className="text-sm text-zinc-400">Distribution by category</p>
+          <h3 className="text-lg font-semibold text-foreground">Skill Mix</h3>
+          <p className="text-sm text-muted-foreground">Distribution by category</p>
         </div>
         <div className="flex-1 w-full min-h-0 relative">
           <ResponsiveContainer width="100%" height="100%">
@@ -176,14 +180,14 @@ export function StatsDashboard() {
           </ResponsiveContainer>
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
-              <span className="text-3xl font-bold text-white">4</span>
-              <p className="text-xs text-zinc-500 uppercase tracking-widest">Types</p>
+              <span className="text-3xl font-bold text-foreground">4</span>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">Types</p>
             </div>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
           {skillDistribution.map((skill, i) => (
-            <div key={skill.name} className="flex items-center gap-2 text-xs text-zinc-400">
+            <div key={skill.name} className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
               {skill.name}
             </div>
@@ -192,11 +196,11 @@ export function StatsDashboard() {
       </BentoCard>
 
       {/* Bottom Section */}
-      <BentoCard className="md:col-span-2 min-h-[300px]" delay={0.7}>
+      <BentoCard className="min-h-[320px] md:col-span-2 xl:min-h-[340px]" delay={0.7}>
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-white">Optimization Details</h3>
-            <p className="text-sm text-zinc-400">Category performance breakdown</p>
+            <h3 className="text-lg font-semibold text-foreground">Optimization Details</h3>
+            <p className="text-sm text-muted-foreground">Category performance breakdown</p>
           </div>
           <Award className="text-orange-400 h-6 w-6" />
         </div>
@@ -219,23 +223,23 @@ export function StatsDashboard() {
         </div>
       </BentoCard>
 
-      <BentoCard className="md:col-span-2 min-h-[300px]" delay={0.8}>
+      <BentoCard className="min-h-[320px] md:col-span-2 xl:min-h-[340px]" delay={0.8}>
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-white">Skill Proficiency</h3>
-          <p className="text-sm text-zinc-400">AI evaluated mastery levels</p>
+            <h3 className="text-lg font-semibold text-foreground">Skill Proficiency</h3>
+            <p className="text-sm text-muted-foreground">AI evaluated mastery levels</p>
         </div>
         <div className="space-y-6">
           {skillsData.map((skill) => (
             <div key={skill.name}>
               <div className="flex justify-between mb-2 text-sm">
-                <span className="text-white">{skill.name}</span>
-                <span className="text-zinc-400">{skill.value}%</span>
+                <span className="text-foreground">{skill.name}</span>
+                <span className="text-muted-foreground">{skill.value}%</span>
               </div>
               <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                 <motion.div
-                  initial={{ width: 0 }}
+                  initial={reduceMotion ? false : { width: 0 }}
                   whileInView={{ width: `${skill.value}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
+                  transition={{ duration: reduceMotion ? 0 : 0.6, ease: "easeOut" }}
                   className="h-full bg-gradient-to-r from-orange-500 to-orange-300 rounded-full"
                 />
               </div>

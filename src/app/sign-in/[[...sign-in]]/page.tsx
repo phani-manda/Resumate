@@ -6,14 +6,18 @@ import { Sparkles, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 function SignInContent() {
   const searchParams = useSearchParams()
   
   return (
     <div className="min-h-screen w-full lg:grid lg:grid-cols-2 overflow-hidden bg-background">
+      <div className="fixed right-5 top-5 z-30">
+        <ThemeToggle />
+      </div>
       {/* Left Side - Visual */}
-      <div className="hidden lg:flex relative items-center justify-center bg-zinc-900 border-r border-white/10 overflow-hidden">
+      <div className="relative hidden items-center justify-center overflow-hidden bg-card/65 lg:flex">
         {/* Animated Background */}
         <div className="absolute inset-0">
           <motion.div
@@ -49,11 +53,11 @@ function SignInContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/5 border border-white/10 mb-8 backdrop-blur-xl">
+            <div className="mb-8 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-card/82 shadow-[var(--shadow-sm)] backdrop-blur-xl">
               <Sparkles className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-4xl font-bold text-white mb-6">Welcome Back, Pilot.</h1>
-            <p className="text-xl text-zinc-400 leading-relaxed">
+            <h1 className="mb-6 text-4xl font-bold text-foreground">Welcome Back, Pilot.</h1>
+            <p className="text-xl leading-relaxed text-muted-foreground">
               Your command center is ready. Resume your optimization journey and unlock new career trajectories.
             </p>
           </motion.div>
@@ -69,7 +73,7 @@ function SignInContent() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="p-4 rounded-lg border border-orange-500/20 bg-orange-500/10 text-orange-100 text-sm flex items-center gap-2"
+              className="flex items-center gap-2 rounded-2xl bg-orange-500/12 p-4 text-sm text-orange-500 shadow-[var(--shadow-sm)]"
             >
               <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
               Session expired due to inactivity.
@@ -77,11 +81,11 @@ function SignInContent() {
           )}
 
           <div className="text-center lg:hidden mb-8">
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">Resumate</h1>
-            <p className="text-zinc-500 mt-2">Sign in to continue</p>
+            <h1 className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-3xl font-bold text-transparent">Resumate</h1>
+            <p className="mt-2 text-muted-foreground">Sign in to continue</p>
           </div>
 
-          <div className="glass-panel p-1 rounded-2xl md:p-8 md:bg-white/5 md:backdrop-blur-xl md:border md:border-white/10">
+          <div className="glass-panel rounded-[32px] p-2 md:p-8">
             <SignIn
               appearance={{
                 elements: {
@@ -89,28 +93,28 @@ function SignInContent() {
                   card: "bg-transparent shadow-none border-none",
                   headerTitle: "hidden",
                   headerSubtitle: "hidden",
-                  socialButtonsBlockButton: "bg-white/10 border-white/20 hover:bg-white/15 text-white font-medium",
-                  socialButtonsBlockButtonText: "text-white",
-                  dividerLine: "bg-white/20",
-                  dividerText: "text-zinc-400",
-                  formFieldLabel: "text-zinc-300 font-medium",
-                  formFieldInput: "bg-black/40 border-white/20 focus:border-primary/50 text-white placeholder:text-zinc-500",
-                  formFieldInputPlaceholder: "text-zinc-500",
-                  identifierPreviewText: "text-white",
+                  socialButtonsBlockButton: "bg-[hsl(var(--card))]/80 text-[hsl(var(--foreground))] shadow-[var(--shadow-sm)] hover:bg-[hsl(var(--card))]",
+                  socialButtonsBlockButtonText: "text-[hsl(var(--foreground))]",
+                  dividerLine: "bg-[hsl(var(--border))]",
+                  dividerText: "text-[hsl(var(--muted-foreground))]",
+                  formFieldLabel: "text-[hsl(var(--foreground))] font-medium",
+                  formFieldInput: "bg-[hsl(var(--card))]/78 border-transparent text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] shadow-[var(--shadow-sm)]",
+                  formFieldInputPlaceholder: "text-[hsl(var(--muted-foreground))]",
+                  identifierPreviewText: "text-[hsl(var(--foreground))]",
                   identifierPreviewEditButton: "text-primary hover:text-primary/80",
                   formFieldAction: "text-primary hover:text-primary/80",
                   footerActionLink: "text-primary hover:text-primary/80",
                   footer: "hidden",
-                  otpCodeFieldInput: "bg-black/40 border-white/20 text-white",
+                  otpCodeFieldInput: "bg-[hsl(var(--card))]/78 border-transparent text-[hsl(var(--foreground))] shadow-[var(--shadow-sm)]",
                   formResendCodeLink: "text-primary hover:text-primary/80",
-                  alternativeMethodsBlockButton: "text-zinc-300 hover:text-white border-white/20 hover:bg-white/10",
-                  badge: "bg-white/10 text-zinc-300 border-white/20"
+                  alternativeMethodsBlockButton: "text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] bg-[hsl(var(--card))]/75 shadow-[var(--shadow-sm)]",
+                  badge: "bg-[hsl(var(--card))]/75 text-[hsl(var(--muted-foreground))]"
                 }
               }}
             />
 
             {/* Custom Footer Links because we hid Clerk's */}
-            <div className="mt-6 text-center text-sm text-zinc-400">
+            <div className="mt-6 text-center text-sm text-muted-foreground">
               Don't have an account?
               <Link href="/sign-up" className="ml-1 text-primary hover:text-primary/80 font-medium transition-colors">
                 Create Account
@@ -127,8 +131,8 @@ function SignInFallback() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background">
       <div className="animate-pulse flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10" />
-        <div className="h-4 w-32 bg-white/10 rounded" />
+        <div className="h-16 w-16 rounded-2xl bg-card/78 shadow-[var(--shadow-sm)]" />
+        <div className="h-4 w-32 rounded bg-card/72" />
       </div>
     </div>
   )

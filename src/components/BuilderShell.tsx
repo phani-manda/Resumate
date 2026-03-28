@@ -6,7 +6,7 @@ import { ResumeBuilder } from "@/components/ResumeBuilder"
 export function BuilderShell() {
   return (
     <AppShell>
-      <div className="flex flex-col h-full min-h-0 px-4 md:px-8 py-4 md:py-6 overflow-hidden">
+      <div className="workspace-shell min-h-0 overflow-hidden">
         <ResumeBuilder />
       </div>
     </AppShell>

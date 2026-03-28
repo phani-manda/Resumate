@@ -6,7 +6,7 @@ import { CareerCoachChat } from "@/components/CareerCoachChat"
 export function CoachShell() {
   return (
     <AppShell>
-      <div className="flex flex-col h-full overflow-hidden px-8 py-6">
+      <div className="workspace-shell min-h-0 overflow-hidden">
         <CareerCoachChat />
       </div>
     </AppShell>

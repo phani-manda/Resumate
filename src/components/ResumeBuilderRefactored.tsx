@@ -10,6 +10,7 @@ import {
   PersonalInfoSection,
   ExperienceSection,
   EducationSection,
+  ProjectsSection,
   SkillsSection,
   ResumePreview,
   ActionToolbar,
@@ -23,6 +24,7 @@ const sections: SectionConfig[] = [
   { id: 'personal', label: 'Personal Info', icon: User },
   { id: 'experience', label: 'Experience', icon: Briefcase },
   { id: 'education', label: 'Education', icon: GraduationCap },
+  { id: 'projects', label: 'Projects', icon: Sparkles },
   { id: 'skills', label: 'Skills', icon: Zap },
 ]
 
@@ -45,6 +47,9 @@ export function ResumeBuilderRefactored() {
     addEducation,
     removeEducation,
     updateEducation,
+    addProject,
+    removeProject,
+    updateProject,
     addSkill,
     removeSkill,
   } = useResumeBuilder()
@@ -91,6 +96,15 @@ export function ResumeBuilderRefactored() {
             onUpdate={updateEducation}
           />
         )
+      case 'projects':
+        return (
+          <ProjectsSection
+            projects={resumeData.projects ?? []}
+            onAdd={addProject}
+            onRemove={removeProject}
+            onUpdate={updateProject}
+          />
+        )
       case 'skills':
         return (
           <SkillsSection
@@ -105,7 +119,7 @@ export function ResumeBuilderRefactored() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-full min-h-0 gap-4 lg:gap-6">
+    <div className="flex h-full min-h-0 flex-col gap-6 lg:flex-row xl:gap-8">
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -116,7 +130,7 @@ export function ResumeBuilderRefactored() {
       />
 
       {/* Left Panel - Collapsible Sections */}
-      <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden lg:max-w-[50%]">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:max-w-[52%]">
         <ActionToolbar
           onImport={triggerFileSelect}
           onSave={handleManualSave}
@@ -127,7 +141,7 @@ export function ResumeBuilderRefactored() {
         />
 
         {/* Collapsible Sections */}
-        <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+        <div className="flex-1 min-h-0 space-y-3 overflow-y-auto pr-2 scrollbar-thin">
           {sections.map((section) => (
             <SectionWrapper
               key={section.id}
@@ -142,12 +156,12 @@ export function ResumeBuilderRefactored() {
       </div>
 
       {/* Right Panel - Live Preview */}
-      <div className="flex-1 min-w-0 min-h-0 flex flex-col bg-zinc-900/50 rounded-2xl border border-white/10 overflow-hidden lg:max-w-[50%]">
+      <div className="glass-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] lg:max-w-[48%]">
         {/* Preview Header */}
-        <div className="flex items-center justify-between p-3 border-b border-white/10 bg-black/20 flex-shrink-0">
+        <div className="flex items-center justify-between bg-card/48 p-4 md:p-5 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-            <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider">Live Preview</span>
+            <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Live Preview</span>
           </div>
           <Button 
             variant="ghost" 
@@ -161,8 +175,8 @@ export function ResumeBuilderRefactored() {
         </div>
 
         {/* A4 Preview Container */}
-        <div className="flex-1 min-h-0 overflow-auto bg-[#525659] p-4 flex items-start justify-center scrollbar-thin">
-          <div className="w-full max-w-[400px] shadow-2xl">
+        <div className="flex flex-1 min-h-0 items-start justify-center overflow-auto bg-[#525659] p-5 md:p-6 xl:p-8 scrollbar-thin">
+          <div className="w-full max-w-[520px] shadow-2xl">
             <ResumePreview ref={previewRef} resumeData={resumeData} />
           </div>
         </div>
@@ -170,8 +184,8 @@ export function ResumeBuilderRefactored() {
 
       {/* Full Preview Dialog */}
       <Dialog open={showFullPreview} onOpenChange={setShowFullPreview}>
-        <DialogContent className="max-w-[min(95vw,900px)] h-[95vh] p-0 bg-[#525659] border-white/10 flex flex-col overflow-hidden">
-          <DialogHeader className="flex-shrink-0 p-4 border-b border-white/10 bg-black/40">
+        <DialogContent className="flex h-[95vh] max-w-[min(95vw,980px)] flex-col overflow-hidden border-white/10 bg-[#525659] p-0">
+          <DialogHeader className="flex-shrink-0 border-b border-white/10 bg-black/40 p-5">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-white">Full Resume Preview</DialogTitle>
               <div className="flex gap-2">

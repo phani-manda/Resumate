@@ -21,11 +21,11 @@ export function ActionToolbar({
   isDownloading,
 }: ActionToolbarProps) {
   return (
-    <div className="flex gap-2 mb-4 flex-wrap flex-shrink-0" role="toolbar" aria-label="Resume actions">
+    <div className="mb-6 flex flex-shrink-0 flex-wrap gap-3" role="toolbar" aria-label="Resume actions">
       <Button 
         variant="outline" 
         size="sm"
-        className="border-white/10 hover:bg-white/5 rounded-lg text-sm"
+        className="h-10 rounded-xl border-transparent px-4 text-sm hover:bg-card"
         onClick={onImport} 
         disabled={isUploading}
         aria-label="Import resume from file"
@@ -41,7 +41,7 @@ export function ActionToolbar({
       <Button 
         variant="outline" 
         size="sm" 
-        className="border-white/10 hover:bg-white/5 rounded-lg text-sm" 
+        className="h-10 rounded-xl border-transparent px-4 text-sm hover:bg-card" 
         onClick={onSave} 
         disabled={isSaving}
         aria-label="Save resume"
@@ -56,7 +56,7 @@ export function ActionToolbar({
       
       <Button 
         size="sm" 
-        className="bg-gradient-to-r from-primary to-orange-300 hover:opacity-90 rounded-lg text-sm" 
+        className="h-10 rounded-xl bg-gradient-to-r from-primary to-orange-300 px-4 text-sm hover:opacity-90" 
         onClick={onExport} 
         disabled={isDownloading}
         aria-label="Export resume as PDF"

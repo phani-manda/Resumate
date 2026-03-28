@@ -1,15 +1,17 @@
 "use client"
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Send, Bot, User, Sparkles, AlertCircle } from 'lucide-react'
+import { Send, Bot, User, Sparkles, AlertCircle, Copy, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
 import { ScrollArea } from '@/components/ui/ScrollArea'
 import { Alert, AlertDescription } from '@/components/ui/Alert'
 import { useChat } from 'ai/react'
+import { toast } from 'sonner'
+import ReactMarkdown from 'react-markdown'
 
 const SUGGESTED_QUESTIONS = [
   'How can I improve my resume summary?',
@@ -20,8 +22,13 @@ const SUGGESTED_QUESTIONS = [
 ]
 
 export function CareerCoachChat() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
+  const [sessionId, setSessionId] = useState<string | undefined>()
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
+  const [reactionState, setReactionState] = useState<Record<string, 'thumbsUp' | 'thumbsDown'>>({})
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error, setMessages } = useChat({
     api: '/api/ai/chat',
+    body: { sessionId },
     initialMessages: [
       {
         id: '1',
@@ -29,6 +36,12 @@ export function CareerCoachChat() {
         content: "Hello! I'm your AI Career Coach. I'm here to help you optimize your resume, prepare for interviews, and advance your career. What would you like to know?",
       },
     ],
+    onResponse: (response) => {
+      const nextSessionId = response.headers.get('X-Session-Id')
+      if (nextSessionId) {
+        setSessionId(nextSessionId)
+      }
+    },
     onError: (error) => {
       console.error('Chat error:', error)
     },
@@ -45,6 +58,43 @@ export function CareerCoachChat() {
     }
   }, [messages])
 
+  useEffect(() => {
+    let isMounted = true
+
+    const loadHistory = async () => {
+      try {
+        const response = await fetch('/api/ai/chat/history?limit=40')
+        if (!response.ok) return
+
+        const payload = await response.json()
+        if (!isMounted) return
+
+        if (Array.isArray(payload.messages) && payload.messages.length > 0) {
+          setMessages(
+            payload.messages.map((message: { id: string; role: 'user' | 'assistant'; content: string }) => ({
+              id: message.id,
+              role: message.role,
+              content: message.content,
+            }))
+          )
+
+          const lastMessage = payload.messages[payload.messages.length - 1]
+          if (lastMessage?.sessionId) {
+            setSessionId(lastMessage.sessionId)
+          }
+        }
+      } catch (historyError) {
+        console.error('Failed to load chat history:', historyError)
+      }
+    }
+
+    void loadHistory()
+
+    return () => {
+      isMounted = false
+    }
+  }, [setMessages])
+
   const handleSendQuestion = (question: string) => {
     handleInputChange({ target: { value: question } } as React.ChangeEvent<HTMLInputElement>)
     
@@ -56,12 +106,46 @@ export function CareerCoachChat() {
     }, 0)
   }
 
+  const handleCopyMessage = async (messageId: string, content: string) => {
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopiedMessageId(messageId)
+      toast.success('Message copied')
+
+      window.setTimeout(() => {
+        setCopiedMessageId((current) => (current === messageId ? null : current))
+      }, 1200)
+    } catch (copyError) {
+      console.error('Copy failed:', copyError)
+      toast.error('Could not copy message')
+    }
+  }
+
+  const handleReaction = async (messageId: string, reaction: 'thumbsUp' | 'thumbsDown') => {
+    setReactionState((current) => ({ ...current, [messageId]: reaction }))
+
+    try {
+      const response = await fetch(`/api/ai/chat/messages/${messageId}/reaction`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reaction }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Reaction save failed')
+      }
+    } catch (reactionError) {
+      console.error('Reaction failed:', reactionError)
+      toast.error('Could not save feedback')
+    }
+  }
+
   return (
-    <div className="grid h-full grid-cols-1 grid-rows-1 gap-6 overflow-hidden lg:grid-cols-3">
+    <div className="grid h-full grid-cols-1 grid-rows-1 gap-6 overflow-hidden lg:grid-cols-3 xl:gap-8">
       {/* Main Chat Panel - Fixed height with internal scroll */}
       <div className="lg:col-span-2 min-h-0 overflow-hidden">
-        <Card className="futuristic-card flex h-full flex-col overflow-hidden border-neutral-800 bg-neutral-900/90">
-          <CardHeader className="flex-shrink-0 border-b border-white/10 bg-white/5">
+        <Card className="futuristic-card flex h-full flex-col overflow-hidden rounded-[30px]">
+          <CardHeader className="flex-shrink-0 bg-card/48 px-7 py-6">
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
               AI Career Coach
@@ -87,7 +171,7 @@ export function CareerCoachChat() {
             {/* Scrollable Messages Area - Only this scrolls */}
             <div className="flex-1 min-h-0 overflow-hidden" ref={scrollAreaRef}>
               <ScrollArea className="h-full">
-                <div className="space-y-4 px-6 py-4">
+                <div className="space-y-5 px-7 py-6">
                 <AnimatePresence>
                   {messages.map((message) => (
                     <motion.div
@@ -107,13 +191,60 @@ export function CareerCoachChat() {
                         </Avatar>
                       )}
                       <div
-                        className={`max-w-[80%] rounded-lg p-4 ${
+                        className={`group relative max-w-[80%] rounded-[22px] p-4 ${
                           message.role === 'user'
                             ? 'bg-orange-500 text-white shadow-[0_0_24px_-12px_rgba(255,122,26,0.7)]'
-                            : 'border border-white/10 bg-white/5 text-white'
+                            : 'surface-soft text-foreground'
                         }`}
                       >
-                        <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                        <div className="prose prose-sm max-w-none whitespace-pre-wrap text-inherit prose-headings:text-inherit prose-p:text-inherit prose-strong:text-inherit prose-code:text-inherit">
+                          <ReactMarkdown>{message.content}</ReactMarkdown>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between gap-3">
+                          <span className="text-[10px] uppercase tracking-[0.18em] opacity-60">
+                            {message.role === 'user' ? 'You' : 'Coach'}
+                          </span>
+                          <div className="flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 rounded-full bg-black/10 hover:bg-black/20"
+                              onClick={() => handleCopyMessage(message.id, message.content)}
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                            </Button>
+                            {message.role === 'assistant' && (
+                              <>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className={`h-7 w-7 rounded-full bg-black/10 hover:bg-black/20 ${
+                                    reactionState[message.id] === 'thumbsUp' ? 'text-orange-300' : ''
+                                  }`}
+                                  onClick={() => handleReaction(message.id, 'thumbsUp')}
+                                >
+                                  <ThumbsUp className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className={`h-7 w-7 rounded-full bg-black/10 hover:bg-black/20 ${
+                                    reactionState[message.id] === 'thumbsDown' ? 'text-red-300' : ''
+                                  }`}
+                                  onClick={() => handleReaction(message.id, 'thumbsDown')}
+                                >
+                                  <ThumbsDown className="h-3.5 w-3.5" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        {copiedMessageId === message.id && (
+                          <div className="mt-2 text-[11px] font-medium text-orange-300">Copied</div>
+                        )}
                       </div>
                       {message.role === 'user' && (
                         <Avatar className="h-8 w-8 border-2 border-muted">
@@ -137,7 +268,7 @@ export function CareerCoachChat() {
                         <Bot className="h-4 w-4 text-primary" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                    <div className="rounded-2xl bg-card/72 p-4 shadow-[var(--shadow-sm)]">
                       <div className="flex gap-1">
                         <motion.div
                           animate={{ scale: [1, 1.2, 1] }}
@@ -163,19 +294,33 @@ export function CareerCoachChat() {
             </div>
             
             {/* Fixed Input Area - Stays at bottom */}
-            <div className="flex-shrink-0 border-t border-white/10 bg-white/5 px-6 py-4">
+            <div className="flex-shrink-0 bg-card/42 px-7 py-5">
               <form onSubmit={handleSubmit} className="flex w-full gap-2">
                 <Input
                   placeholder="Ask me anything about your career..."
                   value={input}
                   onChange={handleInputChange}
                   disabled={isLoading}
-                  className="flex-1 bg-black/40 border-white/10 text-white placeholder:text-zinc-500 focus:border-orange-500/60"
+                  className="flex-1"
                 />
-                <Button type="submit" disabled={!input.trim() || isLoading} className="bg-orange-500 hover:bg-orange-400 text-white">
+                <Button type="submit" disabled={!input.trim() || isLoading}>
                   <Send className="h-4 w-4" />
                 </Button>
               </form>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {SUGGESTED_QUESTIONS.slice(0, 3).map((question) => (
+                  <Button
+                    key={question}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full bg-card/72"
+                    onClick={() => handleSendQuestion(question)}
+                  >
+                    {question}
+                  </Button>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -184,27 +329,27 @@ export function CareerCoachChat() {
       {/* Right Sidebar - Fixed with internal scroll */}
       <div className="flex flex-col gap-6 overflow-hidden min-h-0">
         {/* Quick Tips Card */}
-        <Card className="futuristic-card flex-shrink-0 border-neutral-800 bg-neutral-900/90">
-          <CardHeader>
+        <Card className="futuristic-card flex-shrink-0 rounded-[30px]">
+          <CardHeader className="px-7 py-6">
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-orange-400" />
               Quick Tips
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+          <CardContent className="space-y-4 px-7 pb-7">
+            <div className="rounded-2xl bg-card/72 p-4 shadow-[var(--shadow-sm)]">
               <h4 className="mb-1 text-sm font-medium">Use Action Verbs</h4>
               <p className="text-xs text-muted-foreground">
                 Start bullet points with strong verbs like "Led", "Developed", "Increased"
               </p>
             </div>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+            <div className="rounded-2xl bg-card/72 p-4 shadow-[var(--shadow-sm)]">
               <h4 className="mb-1 text-sm font-medium">Quantify Results</h4>
               <p className="text-xs text-muted-foreground">
                 Include numbers, percentages, and metrics to show impact
               </p>
             </div>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+            <div className="rounded-2xl bg-card/72 p-4 shadow-[var(--shadow-sm)]">
               <h4 className="mb-1 text-sm font-medium">Tailor Content</h4>
               <p className="text-xs text-muted-foreground">
                 Customize your resume for each job application
@@ -214,17 +359,17 @@ export function CareerCoachChat() {
         </Card>
 
         {/* Suggested Questions Card - Scrollable */}
-        <Card className="futuristic-card flex min-h-0 flex-1 flex-col border-neutral-800 bg-neutral-900/90">
-          <CardHeader className="flex-shrink-0">
+        <Card className="futuristic-card flex min-h-0 flex-1 flex-col rounded-[30px]">
+          <CardHeader className="flex-shrink-0 px-7 py-6">
             <CardTitle>Suggested Questions</CardTitle>
           </CardHeader>
           <ScrollArea className="flex-1">
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3 px-7 pb-7">
               {SUGGESTED_QUESTIONS.map((question, index) => (
                 <Button
                   key={index}
                   variant="outline"
-                  className="h-auto w-full justify-start border-white/10 bg-white/5 py-3 text-left text-white hover:border-orange-500/40 hover:bg-orange-500/10"
+                  className="h-auto w-full justify-start rounded-2xl bg-card/72 px-4 py-4 text-left text-foreground shadow-[var(--shadow-sm)] hover:bg-orange-500/10"
                   onClick={() => handleSendQuestion(question)}
                 >
                   <span className="text-sm">{question}</span>

@@ -1,7 +1,6 @@
 'use client'
 
-import { Progress } from '@/components/ui/Progress'
-import { cn } from '@/lib/utils'
+import { ATSScoreGauge, ScoreComparison } from './ATSScoreGauge'
 import type { OptimizationResults } from './types'
 
 interface ScoreCardProps {
@@ -9,42 +8,28 @@ interface ScoreCardProps {
 }
 
 export function ScoreCard({ results }: ScoreCardProps) {
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-orange-300'
-    if (score >= 60) return 'text-amber-300'
-    return 'text-red-400'
-  }
-
-  const getProgressColor = (score: number) => {
-    if (score >= 80) return 'bg-orange-500'
-    if (score >= 60) return 'bg-amber-500'
-    return 'bg-red-500'
-  }
+  const percentile = Math.max(8, Math.min(97, Math.round(results.atsScore * 0.92)))
 
   return (
     <div 
-      className="p-6 rounded-2xl bg-white/5 border border-white/10 relative overflow-hidden"
+      className="surface-soft rounded-[26px] p-6 md:p-7"
       role="region"
       aria-label="ATS compatibility score"
     >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full transform translate-x-1/2 -translate-y-1/2" />
-      <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4">
+      <h3 className="mb-6 text-sm font-medium uppercase tracking-wider text-muted-foreground">
         ATS Compatibility Score
       </h3>
-      <div className="flex items-end gap-3 mb-2">
-        <span 
-          className={cn("text-6xl font-black tracking-tighter", getScoreColor(results.atsScore))}
-          aria-label={`Score: ${results.atsScore} out of 100`}
-        >
-          {results.atsScore}
-        </span>
-        <span className="text-xl text-zinc-500 font-light mb-3">/ 100</span>
+      <div className="grid items-center gap-6 md:grid-cols-[auto_1fr]">
+        <div className="flex justify-center md:justify-start">
+          <ATSScoreGauge score={results.atsScore} size="md" />
+        </div>
+        <div className="space-y-4">
+          <p className="text-sm leading-7 text-muted-foreground">
+            A higher score usually means your resume language is closer to the wording and priorities in the target role.
+          </p>
+          <ScoreComparison score={results.atsScore} percentile={percentile} />
+        </div>
       </div>
-      <Progress 
-        value={results.atsScore} 
-        className="h-2 bg-white/10" 
-        indicatorClassName={getProgressColor(results.atsScore)} 
-      />
     </div>
   )
 }

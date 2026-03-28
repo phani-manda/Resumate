@@ -22,8 +22,10 @@ export const ease = {
   out: [0.16, 1, 0.3, 1] as const, // Snappy decelerate (spring-like)
   in: [0.7, 0, 1, 0.6] as const, // Aggressive accelerate (exits)
   inOut: [0.4, 0, 0.2, 1] as const, // Smooth both ways
-  spring: { type: "spring" as const, stiffness: 300, damping: 24 },
-  bounce: { type: "spring" as const, stiffness: 400, damping: 10 },
+  spring: { type: "spring" as const, stiffness: 240, damping: 28 },
+  bounce: { type: "spring" as const, stiffness: 300, damping: 18 },
+  softSpring: { type: "spring" as const, stiffness: 180, damping: 28, mass: 0.95 },
+  hoverSpring: { type: "spring" as const, stiffness: 240, damping: 24, mass: 0.82 },
 } as const;
 
 // Page transition variants
@@ -106,28 +108,66 @@ export const slideInRight = {
 
 // Button micro-interaction preset
 export const buttonHover = {
-  scale: 1.02,
+  scale: 1.01,
   y: -1,
-  transition: {
-    duration: duration.micro / 1000,
-    ease: ease.out,
-  },
+  transition: ease.hoverSpring,
 } as const;
 
 export const buttonTap = {
   scale: 0.98,
   y: 1,
-  transition: {
-    duration: duration.fast / 1000,
-  },
+  transition: { duration: duration.fast / 1000 },
 } as const;
 
 // Card hover animation
 export const cardHover = {
   y: -2,
-  transition: {
-    duration: duration.micro / 1000,
-    ease: ease.out,
+  scale: 1.005,
+  transition: ease.softSpring,
+} as const;
+
+export const cardHoverSoft = {
+  y: -2,
+  scale: 1.008,
+  transition: ease.softSpring,
+} as const;
+
+export const iconHover = {
+  scale: 1.04,
+  rotate: -2,
+  transition: ease.hoverSpring,
+} as const;
+
+export const sectionReveal = {
+  hidden: { opacity: 0, y: 30, filter: "blur(8px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      duration: duration.enter / 1000,
+      ease: ease.out,
+    },
+  },
+} as const;
+
+export const springList = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.08,
+    },
+  },
+} as const;
+
+export const springItem = {
+  hidden: { opacity: 0, y: 12, scale: 0.99 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: ease.softSpring,
   },
 } as const;
 

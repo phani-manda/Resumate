@@ -27,6 +27,7 @@ import {
   JobDescriptionInput,
   ResumeUploader,
   ResultsPanel,
+  AnalysisProgress,
   useOptimizer,
 } from './optimizer'
 
@@ -384,6 +385,8 @@ export function AIOptimizerRefactored() {
                     )}
                   </div>
                 )}
+
+                <AnalysisProgress isAnalyzing={isAnalyzing} />
               </div>
             </div>
           </div>

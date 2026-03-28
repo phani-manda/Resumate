@@ -1,6 +1,6 @@
 'use client'
 
-import { Badge } from '@/components/ui/Badge'
+import { motion } from 'framer-motion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { CheckCircle2 } from 'lucide-react'
 import type { OptimizationResults } from './types'
@@ -10,36 +10,40 @@ interface KeywordsPanelProps {
 }
 
 export function KeywordsPanel({ results }: KeywordsPanelProps) {
+  const renderKeywordChip = (keyword: string, tone: 'missing' | 'matched') => (
+    <motion.button
+      key={keyword}
+      whileHover={{ scale: 1.05, y: -1 }}
+      whileTap={{ scale: 0.97 }}
+      type="button"
+      className={tone === 'missing' ? 'chip-missing cursor-default' : 'chip-matched cursor-default'}
+    >
+      {tone === 'matched' ? 'OK' : '+'} {keyword}
+    </motion.button>
+  )
+
   return (
     <Tabs defaultValue="missing" className="w-full">
-      <TabsList className="w-full grid grid-cols-2 bg-black/40 border border-white/10 p-1 rounded-2xl">
+      <TabsList className="grid w-full grid-cols-2 rounded-2xl bg-card/72 p-1 shadow-[var(--shadow-sm)]">
         <TabsTrigger 
           value="missing" 
-          className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-zinc-400 rounded-xl"
+          className="rounded-xl text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground"
         >
           Missing Keywords ({results.missingKeywords?.length || 0})
         </TabsTrigger>
         <TabsTrigger 
           value="matched" 
-          className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-zinc-400 rounded-xl"
+          className="rounded-xl text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground"
         >
           Matched ({results.matchedKeywords?.length || 0})
         </TabsTrigger>
       </TabsList>
 
       <TabsContent value="missing" className="mt-4">
-        <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10">
+        <div className="surface-soft rounded-2xl p-4">
           <div className="flex flex-wrap gap-2" role="list" aria-label="Missing keywords">
             {results.missingKeywords && results.missingKeywords.length > 0 ? (
-              results.missingKeywords.map((keyword) => (
-                <Badge 
-                  key={keyword} 
-                  variant="outline" 
-                  className="border-red-500/20 text-red-300 bg-red-500/10 hover:bg-red-500/20 py-1.5 px-3 rounded-lg"
-                >
-                  {keyword}
-                </Badge>
-              ))
+              results.missingKeywords.map((keyword) => renderKeywordChip(keyword, 'missing'))
             ) : (
               <div className="flex items-center gap-2 text-orange-300">
                 <CheckCircle2 className="h-5 w-5" />
@@ -51,18 +55,10 @@ export function KeywordsPanel({ results }: KeywordsPanelProps) {
       </TabsContent>
 
       <TabsContent value="matched" className="mt-4">
-        <div className="p-4 rounded-2xl bg-orange-500/5 border border-orange-500/10">
+        <div className="surface-soft rounded-2xl p-4">
           <div className="flex flex-wrap gap-2" role="list" aria-label="Matched keywords">
             {results.matchedKeywords && results.matchedKeywords.length > 0 ? (
-              results.matchedKeywords.map((keyword) => (
-                <Badge 
-                  key={keyword} 
-                  variant="outline" 
-                  className="border-orange-500/20 text-orange-200 bg-orange-500/10 hover:bg-orange-500/20 py-1.5 px-3 rounded-lg"
-                >
-                  {keyword}
-                </Badge>
-              ))
+              results.matchedKeywords.map((keyword) => renderKeywordChip(keyword, 'matched'))
             ) : (
               <p className="text-zinc-500">No matches found.</p>
             )}

@@ -6,7 +6,7 @@ import { AIOptimizer } from "@/components/AIOptimizer"
 export function OptimizerShell() {
   return (
     <AppShell>
-      <div className="flex flex-col h-full px-8 py-6">
+      <div className="workspace-shell min-h-0 overflow-hidden">
         <AIOptimizer />
       </div>
     </AppShell>
