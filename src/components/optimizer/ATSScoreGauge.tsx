@@ -16,30 +16,31 @@ export function ATSScoreGauge({
   showLabel = true,
   animated = true,
 }: ATSScoreGaugeProps) {
-  // Clamp score between 0-100
   const normalizedScore = Math.max(0, Math.min(100, score))
-  
-  // SVG dimensions based on size
+
   const dimensions = {
     sm: { width: 80, strokeWidth: 6, fontSize: 18 },
     md: { width: 140, strokeWidth: 10, fontSize: 32 },
     lg: { width: 200, strokeWidth: 14, fontSize: 48 },
   }
-  
+
   const { width, strokeWidth, fontSize } = dimensions[size]
   const radius = (width - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
-  
-  // Calculate stroke dashoffset for the progress
   const progress = (normalizedScore / 100) * circumference
   const dashOffset = circumference - progress
 
-  // Color zones based on score
-  const getScoreColor = (s: number) => {
-    if (s >= 90) return { stroke: '#22c55e', glow: 'rgba(34, 197, 94, 0.4)', label: 'Excellent' }
-    if (s >= 75) return { stroke: '#3b82f6', glow: 'rgba(59, 130, 246, 0.4)', label: 'Good' }
-    if (s >= 50) return { stroke: '#f59e0b', glow: 'rgba(245, 158, 11, 0.4)', label: 'Fair' }
-    return { stroke: '#ef4444', glow: 'rgba(239, 68, 68, 0.4)', label: 'Needs Work' }
+  const getScoreColor = (value: number) => {
+    if (value >= 90) {
+      return { stroke: '#ff7a1a', glow: 'rgba(255, 122, 26, 0.42)', label: 'Excellent' }
+    }
+    if (value >= 75) {
+      return { stroke: '#ff9d47', glow: 'rgba(255, 157, 71, 0.38)', label: 'Strong' }
+    }
+    if (value >= 50) {
+      return { stroke: '#f5b15e', glow: 'rgba(245, 177, 94, 0.35)', label: 'Fair' }
+    }
+    return { stroke: '#ef4444', glow: 'rgba(239, 68, 68, 0.35)', label: 'Needs Work' }
   }
 
   const { stroke, glow, label } = getScoreColor(normalizedScore)
@@ -52,7 +53,6 @@ export function ATSScoreGauge({
         viewBox={`0 0 ${width} ${width}`}
         className="transform -rotate-90"
       >
-        {/* Background circle */}
         <circle
           cx={width / 2}
           cy={width / 2}
@@ -61,8 +61,7 @@ export function ATSScoreGauge({
           stroke="rgba(255, 255, 255, 0.1)"
           strokeWidth={strokeWidth}
         />
-        
-        {/* Glow effect */}
+
         <circle
           cx={width / 2}
           cy={width / 2}
@@ -75,8 +74,7 @@ export function ATSScoreGauge({
           strokeDashoffset={dashOffset}
           style={{ filter: 'blur(8px)' }}
         />
-        
-        {/* Progress circle */}
+
         <motion.circle
           cx={width / 2}
           cy={width / 2}
@@ -91,8 +89,7 @@ export function ATSScoreGauge({
           transition={{ duration: 1.5, ease: 'easeOut' }}
         />
       </svg>
-      
-      {/* Score text in center */}
+
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <motion.span
           className="font-black tracking-tight"
@@ -104,14 +101,13 @@ export function ATSScoreGauge({
           {normalizedScore}
         </motion.span>
         {showLabel && size !== 'sm' && (
-          <span className="text-xs text-zinc-500 mt-1">{label}</span>
+          <span className="mt-1 text-xs text-zinc-500">{label}</span>
         )}
       </div>
     </div>
   )
 }
 
-// Score breakdown radar for multiple metrics
 interface ScoreBreakdownProps {
   scores: {
     keywords: number
@@ -135,10 +131,9 @@ export function ScoreBreakdown({ scores }: ScoreBreakdownProps) {
   const center = size / 2
   const maxRadius = 80
 
-  // Calculate polygon points based on scores
   const points = metrics.map(({ key, angle }) => {
-    const score = scores[key] / 100
-    const radius = score * maxRadius
+    const ratio = scores[key] / 100
+    const radius = ratio * maxRadius
     const radians = (angle - 90) * (Math.PI / 180)
     return {
       x: center + radius * Math.cos(radians),
@@ -146,32 +141,32 @@ export function ScoreBreakdown({ scores }: ScoreBreakdownProps) {
     }
   })
 
-  const polygonPoints = points.map(p => `${p.x},${p.y}`).join(' ')
+  const polygonPoints = points.map((point) => `${point.x},${point.y}`).join(' ')
 
   return (
     <div className="relative">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {/* Background circles */}
-        {[0.25, 0.5, 0.75, 1].map((scale, i) => (
+        {[0.25, 0.5, 0.75, 1].map((scale, index) => (
           <polygon
-            key={i}
-            points={metrics.map(({ angle }) => {
-              const radius = scale * maxRadius
-              const radians = (angle - 90) * (Math.PI / 180)
-              return `${center + radius * Math.cos(radians)},${center + radius * Math.sin(radians)}`
-            }).join(' ')}
+            key={index}
+            points={metrics
+              .map(({ angle }) => {
+                const radius = scale * maxRadius
+                const radians = (angle - 90) * (Math.PI / 180)
+                return `${center + radius * Math.cos(radians)},${center + radius * Math.sin(radians)}`
+              })
+              .join(' ')}
             fill="none"
             stroke="rgba(255, 255, 255, 0.1)"
             strokeWidth="1"
           />
         ))}
 
-        {/* Axis lines */}
-        {metrics.map(({ angle }, i) => {
+        {metrics.map(({ angle }, index) => {
           const radians = (angle - 90) * (Math.PI / 180)
           return (
             <line
-              key={i}
+              key={index}
               x1={center}
               y1={center}
               x2={center + maxRadius * Math.cos(radians)}
@@ -182,11 +177,10 @@ export function ScoreBreakdown({ scores }: ScoreBreakdownProps) {
           )
         })}
 
-        {/* Score polygon */}
         <motion.polygon
           points={polygonPoints}
-          fill="rgba(124, 58, 237, 0.2)"
-          stroke="rgba(124, 58, 237, 0.8)"
+          fill="rgba(255, 122, 26, 0.18)"
+          stroke="rgba(255, 122, 26, 0.8)"
           strokeWidth="2"
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -194,32 +188,30 @@ export function ScoreBreakdown({ scores }: ScoreBreakdownProps) {
           style={{ transformOrigin: 'center' }}
         />
 
-        {/* Data points */}
-        {points.map((point, i) => (
+        {points.map((point, index) => (
           <motion.circle
-            key={i}
+            key={index}
             cx={point.x}
             cy={point.y}
             r="4"
-            fill="rgb(124, 58, 237)"
+            fill="rgb(255, 122, 26)"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5 + i * 0.1, duration: 0.3 }}
+            transition={{ delay: 0.5 + index * 0.1, duration: 0.3 }}
           />
         ))}
       </svg>
 
-      {/* Labels */}
       {metrics.map(({ key, label, angle }) => {
         const radians = (angle - 90) * (Math.PI / 180)
         const labelRadius = maxRadius + 25
         const x = center + labelRadius * Math.cos(radians)
         const y = center + labelRadius * Math.sin(radians)
-        
+
         return (
           <div
             key={key}
-            className="absolute text-xs text-zinc-400 whitespace-nowrap"
+            className="absolute whitespace-nowrap text-xs text-zinc-400"
             style={{
               left: x,
               top: y,
@@ -234,7 +226,6 @@ export function ScoreBreakdown({ scores }: ScoreBreakdownProps) {
   )
 }
 
-// Score comparison badge
 interface ScoreComparisonProps {
   score: number
   percentile: number
@@ -243,13 +234,18 @@ interface ScoreComparisonProps {
 export function ScoreComparison({ score, percentile }: ScoreComparisonProps) {
   return (
     <div className="flex items-center gap-2 text-sm">
-      <div className={cn(
-        "px-2 py-1 rounded-full text-xs font-medium",
-        percentile >= 75 ? "bg-emerald-500/20 text-emerald-400" :
-        percentile >= 50 ? "bg-blue-500/20 text-blue-400" :
-        percentile >= 25 ? "bg-amber-500/20 text-amber-400" :
-        "bg-red-500/20 text-red-400"
-      )}>
+      <div
+        className={cn(
+          'rounded-full px-2 py-1 text-xs font-medium',
+          percentile >= 75
+            ? 'bg-orange-500/20 text-orange-300'
+            : percentile >= 50
+              ? 'bg-orange-400/20 text-orange-200'
+              : percentile >= 25
+                ? 'bg-amber-500/20 text-amber-400'
+                : 'bg-red-500/20 text-red-400'
+        )}
+      >
         Top {100 - percentile}%
       </div>
       <span className="text-zinc-500">
@@ -259,25 +255,20 @@ export function ScoreComparison({ score, percentile }: ScoreComparisonProps) {
   )
 }
 
-// Score delta indicator
 interface ScoreDeltaProps {
   delta: number
 }
 
 export function ScoreDelta({ delta }: ScoreDeltaProps) {
-  const isPositive = delta > 0
-  const isZero = delta === 0
-
-  if (isZero) {
-    return <span className="text-zinc-500 text-sm">No change</span>
+  if (delta === 0) {
+    return <span className="text-sm text-zinc-500">No change</span>
   }
 
+  const positive = delta > 0
+
   return (
-    <div className={cn(
-      "flex items-center gap-1 text-sm font-medium",
-      isPositive ? "text-emerald-400" : "text-red-400"
-    )}>
-      <span>{isPositive ? '↑' : '↓'}</span>
+    <div className={cn('flex items-center gap-1 text-sm font-medium', positive ? 'text-orange-300' : 'text-red-400')}>
+      <span>{positive ? '+' : '-'}</span>
       <span>{Math.abs(delta)} points</span>
     </div>
   )

@@ -403,8 +403,8 @@ export function AIOptimizer() {
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-400'
-    if (score >= 60) return 'text-yellow-400'
+    if (score >= 80) return 'text-orange-300'
+    if (score >= 60) return 'text-amber-300'
     return 'text-red-400'
   }
 
@@ -419,7 +419,7 @@ export function AIOptimizer() {
       {/* Left: Input Form */}
       <div className="w-full lg:w-1/2 flex flex-col min-h-0 max-h-full">
         <div className="glass-panel flex-1 flex flex-col overflow-hidden rounded-3xl border-white/10 shadow-2xl relative group min-h-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent pointer-events-none" />
           <div className="flex-shrink-0 p-6 border-b border-white/10 flex items-center gap-3 bg-white/5 relative z-10">
             <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/20 box-shadow-glow">
               <Bot className="h-6 w-6 text-primary" />
@@ -434,24 +434,24 @@ export function AIOptimizer() {
             <div className="p-6 space-y-8">
               <div className="space-y-3">
                 <Label htmlFor="jobDescription" className="text-zinc-300 font-medium flex items-center gap-2">
-                  <Target className="h-4 w-4 text-purple-400" /> Target Job Description
+                  <Target className="h-4 w-4 text-orange-400" /> Target Job Description
                 </Label>
                 <div className="relative group/input">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-2xl blur opacity-0 group-hover/input:opacity-100 transition duration-500" />
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-orange-300/20 rounded-2xl blur opacity-0 group-hover/input:opacity-100 transition duration-500" />
                   <Textarea
                     id="jobDescription"
                     placeholder="Paste the job description here..."
                     value={jobDescription}
                     onChange={(e) => setJobDescription(e.target.value)}
                     rows={8}
-                    className="relative bg-black/40 border-white/10 focus:border-purple-500/50 text-white placeholder:text-zinc-500 resize-none rounded-2xl p-4"
+                    className="relative bg-black/40 border-white/10 focus:border-orange-500/50 text-white placeholder:text-zinc-500 resize-none rounded-2xl p-4"
                   />
                 </div>
               </div>
 
               <div className="space-y-3">
                 <Label htmlFor="resumeText" className="text-zinc-300 font-medium flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-blue-400" /> Current Resume Content
+                  <FileText className="h-4 w-4 text-orange-300" /> Current Resume Content
                 </Label>
                 
                 {/* File Upload Area */}
@@ -470,29 +470,29 @@ export function AIOptimizer() {
                       htmlFor="resume-upload"
                       className="relative block cursor-pointer group/upload"
                     >
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl blur opacity-0 group-hover/upload:opacity-100 transition duration-500" />
-                      <div className="relative bg-black/40 border-2 border-dashed border-white/10 hover:border-blue-500/50 rounded-2xl p-8 transition-colors">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-orange-300/20 rounded-2xl blur opacity-0 group-hover/upload:opacity-100 transition duration-500" />
+                      <div className="relative bg-black/40 border-2 border-dashed border-white/10 hover:border-orange-500/50 rounded-2xl p-8 transition-colors">
                         <div className="flex flex-col items-center gap-3 text-center">
-                          <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/20">
-                            <Upload className="h-6 w-6 text-blue-400" />
+                          <div className="h-12 w-12 rounded-full bg-orange-500/20 flex items-center justify-center border border-orange-500/20">
+                            <Upload className="h-6 w-6 text-orange-300" />
                           </div>
                           <div>
                             <p className="text-white font-medium">Upload Resume</p>
                             <p className="text-xs text-zinc-400 mt-1">PDF, DOCX or DOC (Max 10MB)</p>
                           </div>
                           {isUploading && (
-                            <Loader2 className="h-5 w-5 animate-spin text-blue-400" />
+                            <Loader2 className="h-5 w-5 animate-spin text-orange-300" />
                           )}
                         </div>
                       </div>
                     </label>
                   ) : (
                     <div className="relative group/file">
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl blur" />
-                      <div className="relative bg-black/60 border border-green-500/30 rounded-2xl p-4">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-orange-300/20 rounded-2xl blur" />
+                      <div className="relative bg-black/60 border border-orange-500/30 rounded-2xl p-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-lg bg-green-500/20 flex items-center justify-center border border-green-500/20">
-                            <FileText className="h-5 w-5 text-green-400" />
+                          <div className="h-10 w-10 rounded-lg bg-orange-500/20 flex items-center justify-center border border-orange-500/20">
+                            <FileText className="h-5 w-5 text-orange-300" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-white font-medium truncate">{uploadedFile.name}</p>
@@ -517,14 +517,14 @@ export function AIOptimizer() {
                   <div className="relative">
                     <div className="text-center text-xs text-zinc-400 my-2">or paste manually</div>
                     <div className="relative group/input">
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl blur opacity-0 group-hover/input:opacity-100 transition duration-500" />
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-orange-300/20 rounded-2xl blur opacity-0 group-hover/input:opacity-100 transition duration-500" />
                       <Textarea
                         id="resumeText"
                         placeholder="Paste your resume text here..."
                         value={resumeText}
                         onChange={(e) => setResumeText(e.target.value)}
                         rows={6}
-                        className="relative bg-black/40 border-white/10 focus:border-blue-500/50 text-white placeholder:text-zinc-500 resize-none rounded-2xl p-4"
+                        className="relative bg-black/40 border-white/10 focus:border-orange-500/50 text-white placeholder:text-zinc-500 resize-none rounded-2xl p-4"
                       />
                     </div>
                   </div>
@@ -566,7 +566,7 @@ export function AIOptimizer() {
                           value={resumeText}
                           onChange={(e) => setResumeText(e.target.value)}
                           rows={8}
-                          className="relative bg-black/40 border-white/10 focus:border-blue-500/50 text-white placeholder:text-zinc-500 resize-none rounded-2xl p-4 text-sm"
+                        className="relative bg-black/40 border-white/10 focus:border-orange-500/50 text-white placeholder:text-zinc-500 resize-none rounded-2xl p-4 text-sm"
                         />
                       </div>
                     ) : (
@@ -575,7 +575,7 @@ export function AIOptimizer() {
                         {/* Personal Info Section */}
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                           <div className="flex items-center gap-2 mb-3">
-                            <User className="h-4 w-4 text-blue-400" />
+                            <User className="h-4 w-4 text-orange-300" />
                             <span className="text-sm font-medium text-zinc-300">Personal Information</span>
                           </div>
                           <div className="grid grid-cols-2 gap-3">
@@ -609,7 +609,7 @@ export function AIOptimizer() {
                         {/* Summary Section */}
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                           <div className="flex items-center gap-2 mb-3">
-                            <FileText className="h-4 w-4 text-purple-400" />
+                            <FileText className="h-4 w-4 text-orange-400" />
                             <span className="text-sm font-medium text-zinc-300">Professional Summary</span>
                           </div>
                           <Textarea
@@ -625,7 +625,7 @@ export function AIOptimizer() {
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <Briefcase className="h-4 w-4 text-green-400" />
+                              <Briefcase className="h-4 w-4 text-orange-300" />
                               <span className="text-sm font-medium text-zinc-300">Experience ({parsedResume.experiences.length})</span>
                             </div>
                             <Button variant="ghost" size="sm" onClick={addExperience} className="h-7 text-xs text-primary hover:bg-primary/20">
@@ -680,7 +680,7 @@ export function AIOptimizer() {
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <GraduationCap className="h-4 w-4 text-yellow-400" />
+                              <GraduationCap className="h-4 w-4 text-orange-300" />
                               <span className="text-sm font-medium text-zinc-300">Education ({parsedResume.education.length})</span>
                             </div>
                             <Button variant="ghost" size="sm" onClick={addEducation} className="h-7 text-xs text-primary hover:bg-primary/20">
@@ -721,7 +721,7 @@ export function AIOptimizer() {
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <FolderKanban className="h-4 w-4 text-cyan-400" />
+                              <FolderKanban className="h-4 w-4 text-orange-300" />
                               <span className="text-sm font-medium text-zinc-300">Projects ({parsedResume.projects?.length || 0})</span>
                             </div>
                             <Button variant="ghost" size="sm" onClick={addProject} className="h-7 text-xs text-primary hover:bg-primary/20">
@@ -806,7 +806,7 @@ export function AIOptimizer() {
             <Button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !jobDescription.trim() || (!resumeText.trim() && !parsedResume)}
-              className="w-full h-12 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 border-0 shadow-[0_0_20px_-5px_rgba(124,58,237,0.5)] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none rounded-xl"
+              className="w-full h-12 text-lg font-bold bg-gradient-to-r from-orange-500 to-orange-300 hover:from-orange-400 hover:to-orange-200 border-0 shadow-[0_0_24px_-8px_rgba(255,122,26,0.55)] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none rounded-xl"
             >
               {isAnalyzing ? (
                 <>
@@ -827,10 +827,10 @@ export function AIOptimizer() {
       {/* Right: Results Panel */}
       <div className="w-full lg:w-1/2 h-full">
         <div className="h-full glass-panel rounded-3xl overflow-hidden border-white/10 shadow-2xl flex flex-col relative group">
-          <div className="absolute inset-0 bg-gradient-to-bl from-blue-500/5 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-bl from-orange-500/10 to-transparent pointer-events-none" />
           <div className="p-6 border-b border-white/10 bg-white/5 flex items-center justify-between relative z-10">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-emerald-400" /> Analysis Report
+              <TrendingUp className="h-5 w-5 text-orange-300" /> Analysis Report
             </h2>
             {results && (
               <Badge variant={results.atsScore >= 80 ? 'default' : 'secondary'} className="bg-white/10 text-white border-white/20 hover:bg-white/20">
@@ -863,7 +863,7 @@ export function AIOptimizer() {
                     </span>
                     <span className="text-xl text-zinc-500 font-light mb-3">/ 100</span>
                   </div>
-                  <Progress value={results.atsScore} className="h-2 bg-white/10" indicatorClassName={cn(results.atsScore >= 80 ? "bg-emerald-500" : results.atsScore >= 60 ? "bg-yellow-500" : "bg-red-500")} />
+                  <Progress value={results.atsScore} className="h-2 bg-white/10" indicatorClassName={cn(results.atsScore >= 80 ? "bg-orange-500" : results.atsScore >= 60 ? "bg-amber-500" : "bg-red-500")} />
                 </div>
 
                 {/* Keywords Analysis */}
@@ -883,7 +883,7 @@ export function AIOptimizer() {
                             </Badge>
                           ))
                         ) : (
-                          <div className="flex items-center gap-2 text-emerald-400">
+                          <div className="flex items-center gap-2 text-orange-300">
                             <CheckCircle2 className="h-5 w-5" />
                             All critical keywords present
                           </div>
@@ -893,11 +893,11 @@ export function AIOptimizer() {
                   </TabsContent>
 
                   <TabsContent value="matched" className="mt-4">
-                    <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                    <div className="p-4 rounded-2xl bg-orange-500/5 border border-orange-500/10">
                       <div className="flex flex-wrap gap-2">
                         {results.matchedKeywords && results.matchedKeywords.length > 0 ? (
                           results.matchedKeywords.map((keyword) => (
-                            <Badge key={keyword} variant="outline" className="border-emerald-500/20 text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 py-1.5 px-3 rounded-lg">
+                            <Badge key={keyword} variant="outline" className="border-orange-500/20 text-orange-200 bg-orange-500/10 hover:bg-orange-500/20 py-1.5 px-3 rounded-lg">
                               {keyword}
                             </Badge>
                           ))
@@ -912,13 +912,13 @@ export function AIOptimizer() {
                 {/* Suggestions Protocol */}
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-purple-400" /> Optimization Protocol
+                    <Sparkles className="h-4 w-4 text-orange-400" /> Optimization Protocol
                   </h3>
                   <div className="space-y-3">
                     {results.suggestions && results.suggestions.length > 0 ? (
                       results.suggestions.map((suggestion, index) => (
                         <div key={index} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
-                          <div className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-[10px] font-bold text-white">
+                          <div className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-orange-500 to-orange-300 flex items-center justify-center text-[10px] font-bold text-white">
                             {index + 1}
                           </div>
                           <p className="text-sm text-zinc-300 leading-relaxed">{suggestion}</p>

@@ -36,29 +36,29 @@ export function ResumeUploader({
           htmlFor="resume-upload"
           className="relative block cursor-pointer group/upload"
         >
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl blur opacity-0 group-hover/upload:opacity-100 transition duration-500" />
-          <div className="relative bg-black/40 border-2 border-dashed border-white/10 hover:border-blue-500/50 rounded-2xl p-8 transition-colors">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-orange-300/20 rounded-2xl blur opacity-0 group-hover/upload:opacity-100 transition duration-500" />
+          <div className="relative bg-black/40 border-2 border-dashed border-white/10 hover:border-orange-500/50 rounded-2xl p-8 transition-colors">
             <div className="flex flex-col items-center gap-3 text-center">
-              <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/20">
-                <Upload className="h-6 w-6 text-blue-400" />
+              <div className="h-12 w-12 rounded-full bg-orange-500/20 flex items-center justify-center border border-orange-500/20">
+                <Upload className="h-6 w-6 text-orange-300" />
               </div>
               <div>
                 <p className="text-white font-medium">Upload Resume</p>
                 <p className="text-xs text-zinc-400 mt-1">PDF, DOCX or DOC (Max 10MB)</p>
               </div>
               {isUploading && (
-                <Loader2 className="h-5 w-5 animate-spin text-blue-400" />
+                <Loader2 className="h-5 w-5 animate-spin text-orange-300" />
               )}
             </div>
           </div>
         </label>
       ) : (
         <div className="relative group/file">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl blur" />
-          <div className="relative bg-black/60 border border-green-500/30 rounded-2xl p-4">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-orange-300/20 rounded-2xl blur" />
+          <div className="relative bg-black/60 border border-orange-500/30 rounded-2xl p-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-green-500/20 flex items-center justify-center border border-green-500/20">
-                <FileText className="h-5 w-5 text-green-400" />
+              <div className="h-10 w-10 rounded-lg bg-orange-500/20 flex items-center justify-center border border-orange-500/20">
+                <FileText className="h-5 w-5 text-orange-300" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-white font-medium truncate">{uploadedFile.name}</p>

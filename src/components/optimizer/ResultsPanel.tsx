@@ -22,10 +22,10 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
 
   return (
     <div className="h-full glass-panel rounded-3xl overflow-hidden border-white/10 shadow-2xl flex flex-col relative group">
-      <div className="absolute inset-0 bg-gradient-to-bl from-blue-500/5 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-bl from-orange-500/10 to-transparent pointer-events-none" />
       <div className="p-6 border-b border-white/10 bg-white/5 flex items-center justify-between relative z-10">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-emerald-400" /> Analysis Report
+          <TrendingUp className="h-5 w-5 text-orange-300" /> Analysis Report
         </h2>
         {results && (
           <Badge 

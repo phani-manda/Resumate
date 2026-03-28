@@ -530,7 +530,7 @@ export function ResumeBuilder() {
           <Button variant="outline" size="sm" className="border-white/10 hover:bg-white/5 rounded-lg text-sm" onClick={handleManualSave} disabled={isSaving}>
             <Save className="mr-2 h-4 w-4" /> Save
           </Button>
-          <Button size="sm" className="bg-gradient-to-r from-primary to-purple-400 hover:opacity-90 rounded-lg text-sm" onClick={handleDownloadPDF} disabled={isDownloading}>
+          <Button size="sm" className="bg-gradient-to-r from-primary to-orange-300 hover:opacity-90 rounded-lg text-sm" onClick={handleDownloadPDF} disabled={isDownloading}>
             <Download className="mr-2 h-4 w-4" /> Export PDF
           </Button>
         </div>

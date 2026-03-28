@@ -83,13 +83,13 @@ export function AnalysisProgress({ isAnalyzing, onComplete }: AnalysisProgressPr
               className={cn(
                 "flex items-center gap-3 px-4 py-2 rounded-lg transition-colors",
                 isActive && "bg-primary/10",
-                isCompleted && "bg-emerald-500/5"
+                isCompleted && "bg-orange-500/5"
               )}
             >
               {/* Status indicator */}
               <div className={cn(
                 "flex items-center justify-center w-6 h-6 rounded-full transition-colors",
-                isCompleted && "bg-emerald-500/20",
+                isCompleted && "bg-orange-500/20",
                 isActive && "bg-primary/20",
                 isPending && "bg-white/5"
               )}>
@@ -99,7 +99,7 @@ export function AnalysisProgress({ isAnalyzing, onComplete }: AnalysisProgressPr
                     animate={{ scale: 1 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   >
-                    <Check className="h-3 w-3 text-emerald-400" />
+                    <Check className="h-3 w-3 text-orange-300" />
                   </motion.div>
                 ) : isActive ? (
                   <Loader2 className="h-3 w-3 text-primary animate-spin" />
@@ -111,7 +111,7 @@ export function AnalysisProgress({ isAnalyzing, onComplete }: AnalysisProgressPr
               {/* Step label */}
               <span className={cn(
                 "text-sm transition-colors",
-                isCompleted && "text-emerald-400",
+                isCompleted && "text-orange-300",
                 isActive && "text-primary",
                 isPending && "text-zinc-600"
               )}>
@@ -137,7 +137,7 @@ export function AnalysisProgress({ isAnalyzing, onComplete }: AnalysisProgressPr
       <div className="mt-4 px-4">
         <div className="h-1 bg-white/5 rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-primary to-purple-400"
+            className="h-full bg-gradient-to-r from-primary to-orange-300"
             initial={{ width: '0%' }}
             animate={{ 
               width: `${((completedSteps.size + (currentStepIndex >= 0 ? 0.5 : 0)) / ANALYSIS_STEPS.length) * 100}%` 

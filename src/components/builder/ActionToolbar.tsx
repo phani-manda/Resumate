@@ -56,7 +56,7 @@ export function ActionToolbar({
       
       <Button 
         size="sm" 
-        className="bg-gradient-to-r from-primary to-purple-400 hover:opacity-90 rounded-lg text-sm" 
+        className="bg-gradient-to-r from-primary to-orange-300 hover:opacity-90 rounded-lg text-sm" 
         onClick={onExport} 
         disabled={isDownloading}
         aria-label="Export resume as PDF"

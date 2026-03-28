@@ -152,7 +152,7 @@ function DefaultErrorFallback({ error, onReset }: DefaultErrorFallbackProps) {
 
         <Button
           onClick={() => (window.location.href = "/dashboard")}
-          className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600"
+          className="gap-2 bg-gradient-to-r from-orange-500 to-orange-300 text-white"
           aria-label="Go to dashboard"
         >
           <Home className="h-4 w-4" aria-hidden="true" />
@@ -164,7 +164,7 @@ function DefaultErrorFallback({ error, onReset }: DefaultErrorFallbackProps) {
         If this keeps happening,{" "}
         <a
           href="mailto:support@resumate.ai"
-          className="text-purple-400 underline hover:text-purple-300"
+          className="text-orange-300 underline hover:text-orange-200"
         >
           contact support
         </a>

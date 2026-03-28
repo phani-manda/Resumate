@@ -76,7 +76,7 @@ export function PWAInstallPrompt() {
         <div className="bg-zinc-900 border border-white/10 rounded-xl p-4 shadow-2xl">
           <div className="flex items-start gap-4">
             {/* App icon */}
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-300 flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">R</span>
             </div>
 

@@ -41,7 +41,7 @@ export function KeywordsPanel({ results }: KeywordsPanelProps) {
                 </Badge>
               ))
             ) : (
-              <div className="flex items-center gap-2 text-emerald-400">
+              <div className="flex items-center gap-2 text-orange-300">
                 <CheckCircle2 className="h-5 w-5" />
                 All critical keywords present
               </div>
@@ -51,14 +51,14 @@ export function KeywordsPanel({ results }: KeywordsPanelProps) {
       </TabsContent>
 
       <TabsContent value="matched" className="mt-4">
-        <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+        <div className="p-4 rounded-2xl bg-orange-500/5 border border-orange-500/10">
           <div className="flex flex-wrap gap-2" role="list" aria-label="Matched keywords">
             {results.matchedKeywords && results.matchedKeywords.length > 0 ? (
               results.matchedKeywords.map((keyword) => (
                 <Badge 
                   key={keyword} 
                   variant="outline" 
-                  className="border-emerald-500/20 text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 py-1.5 px-3 rounded-lg"
+                  className="border-orange-500/20 text-orange-200 bg-orange-500/10 hover:bg-orange-500/20 py-1.5 px-3 rounded-lg"
                 >
                   {keyword}
                 </Badge>

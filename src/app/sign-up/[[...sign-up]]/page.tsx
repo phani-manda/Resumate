@@ -22,7 +22,7 @@ export default function SignUpPage() {
               repeat: Infinity,
               repeatType: "reverse",
             }}
-            className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] bg-indigo-500/10 rounded-full blur-3xl"
+            className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] bg-orange-500/12 rounded-full blur-3xl"
           />
           <motion.div
             animate={{
@@ -34,7 +34,7 @@ export default function SignUpPage() {
               repeat: Infinity,
               repeatType: "reverse",
             }}
-            className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-pink-500/10 rounded-full blur-3xl"
+            className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-orange-300/10 rounded-full blur-3xl"
           />
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20 bg-center" />
         </div>
@@ -58,7 +58,7 @@ export default function SignUpPage() {
 
       {/* Right Side - Form */}
       <div className="flex items-center justify-center p-8 bg-background relative">
-        <div className="absolute inset-0 bg-gradient-to-bl from-primary/5 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-bl from-orange-500/8 to-transparent pointer-events-none" />
 
         <div className="w-full max-w-md space-y-8 relative z-10">
           <div className="text-center lg:hidden mb-8">

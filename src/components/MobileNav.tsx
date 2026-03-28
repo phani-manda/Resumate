@@ -16,29 +16,29 @@ const navItems = [
     href: "/dashboard",
     icon: LayoutDashboard,
     label: "Dashboard",
-    color: "text-purple-400",
-    activeColor: "text-purple-300",
+    color: "text-orange-300",
+    activeColor: "text-white",
   },
   {
     href: "/builder",
     icon: FileText,
     label: "Builder",
-    color: "text-blue-400",
-    activeColor: "text-blue-300",
+    color: "text-orange-300",
+    activeColor: "text-white",
   },
   {
     href: "/optimizer",
     icon: Zap,
     label: "Optimizer",
-    color: "text-amber-400",
-    activeColor: "text-amber-300",
+    color: "text-orange-300",
+    activeColor: "text-white",
   },
   {
     href: "/coach",
     icon: MessageCircle,
     label: "Coach",
-    color: "text-emerald-400",
-    activeColor: "text-emerald-300",
+    color: "text-orange-300",
+    activeColor: "text-white",
   },
 ];
 
@@ -96,7 +96,7 @@ export function MobileNav() {
                   layoutId="mobile-nav-indicator"
                   className={cn(
                     "absolute -top-1 h-1 w-6 rounded-full",
-                    "bg-gradient-to-r from-purple-500 to-blue-500"
+                    "bg-gradient-to-r from-orange-500 to-orange-300"
                   )}
                   transition={{
                     type: "spring",

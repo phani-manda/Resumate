@@ -10,14 +10,14 @@ interface ScoreCardProps {
 
 export function ScoreCard({ results }: ScoreCardProps) {
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-400'
-    if (score >= 60) return 'text-yellow-400'
+    if (score >= 80) return 'text-orange-300'
+    if (score >= 60) return 'text-amber-300'
     return 'text-red-400'
   }
 
   const getProgressColor = (score: number) => {
-    if (score >= 80) return 'bg-emerald-500'
-    if (score >= 60) return 'bg-yellow-500'
+    if (score >= 80) return 'bg-orange-500'
+    if (score >= 60) return 'bg-amber-500'
     return 'bg-red-500'
   }
 

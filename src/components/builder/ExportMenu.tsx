@@ -30,7 +30,7 @@ export function ExportMenu({ resumeData, onExportPdf, isDownloadingPdf }: Export
       <DropdownMenuTrigger asChild>
         <Button
           size="sm"
-          className="bg-gradient-to-r from-primary to-purple-400 hover:opacity-90 rounded-lg text-sm"
+          className="bg-gradient-to-r from-primary to-orange-300 hover:opacity-90 rounded-lg text-sm"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -56,7 +56,7 @@ export function ExportMenu({ resumeData, onExportPdf, isDownloadingPdf }: Export
           disabled={isExporting}
           className="cursor-pointer focus:bg-white/5"
         >
-          <File className="mr-2 h-4 w-4 text-blue-400" />
+          <File className="mr-2 h-4 w-4 text-orange-300" />
           <span>Word Document (.docx)</span>
         </DropdownMenuItem>
         <DropdownMenuItem 
@@ -72,7 +72,7 @@ export function ExportMenu({ resumeData, onExportPdf, isDownloadingPdf }: Export
           disabled={isExporting}
           className="cursor-pointer focus:bg-white/5"
         >
-          <FileJson className="mr-2 h-4 w-4 text-yellow-400" />
+          <FileJson className="mr-2 h-4 w-4 text-orange-200" />
           <span>JSON Data</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

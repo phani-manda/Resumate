@@ -12,6 +12,9 @@ const outfit = Outfit({
   preload: true,
 });
 
+const clerkPublishableKey =
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim();
+
 export const metadata: Metadata = {
   title: "Resumate - AI Resume Builder & Career Coach",
   description: "Build professional resumes with AI assistance and get personalized career coaching. Optimize for ATS, get real-time feedback, and land your dream job.",
@@ -29,7 +32,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#7C3AED",
+  themeColor: "#ff7a1a",
 };
 
 export default function RootLayout({
@@ -38,9 +41,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey={clerkPublishableKey}>
       <html lang="en" suppressHydrationWarning>
-        <head>
+        <head suppressHydrationWarning>
           {/* Preconnect to external services */}
           <link rel="preconnect" href="https://api.groq.com" />
           <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -71,7 +74,7 @@ export default function RootLayout({
             <Toaster 
               position="bottom-right"
               toastOptions={{
-                className: "bg-zinc-900 border-zinc-800 text-white",
+                className: "bg-neutral-900 border-neutral-800 text-white",
                 duration: 4000,
               }}
             />

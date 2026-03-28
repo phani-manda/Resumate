@@ -76,7 +76,7 @@ export function AIOptimizerRefactored() {
       {/* Left: Input Form */}
       <div className="w-full lg:w-1/2 flex flex-col min-h-0 max-h-full">
         <div className="glass-panel flex-1 flex flex-col overflow-hidden rounded-3xl border-white/10 shadow-2xl relative group min-h-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent pointer-events-none" />
           
           {/* Header */}
           <div className="flex-shrink-0 p-6 border-b border-white/10 flex items-center gap-3 bg-white/5 relative z-10">
@@ -99,7 +99,7 @@ export function AIOptimizerRefactored() {
 
               <div className="space-y-3">
                 <Label htmlFor="resumeText" className="text-zinc-300 font-medium flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-blue-400" /> Current Resume Content
+                  <FileText className="h-4 w-4 text-orange-300" /> Current Resume Content
                 </Label>
                 
                 {/* Hidden file input */}
@@ -123,14 +123,14 @@ export function AIOptimizerRefactored() {
                   <div className="relative">
                     <div className="text-center text-xs text-zinc-400 my-2">or paste manually</div>
                     <div className="relative group/input">
-                      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl blur opacity-0 group-hover/input:opacity-100 transition duration-500" />
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-orange-300/20 rounded-2xl blur opacity-0 group-hover/input:opacity-100 transition duration-500" />
                       <Textarea
                         id="resumeText"
                         placeholder="Paste your resume text here..."
                         value={resumeText}
                         onChange={(e) => setResumeText(e.target.value)}
                         rows={6}
-                        className="relative bg-black/40 border-white/10 focus:border-blue-500/50 text-white placeholder:text-zinc-500 resize-none rounded-2xl p-4"
+                        className="relative bg-black/40 border-white/10 focus:border-orange-500/50 text-white placeholder:text-zinc-500 resize-none rounded-2xl p-4"
                       />
                     </div>
                   </div>
@@ -172,7 +172,7 @@ export function AIOptimizerRefactored() {
                           value={resumeText}
                           onChange={(e) => setResumeText(e.target.value)}
                           rows={8}
-                          className="relative bg-black/40 border-white/10 focus:border-blue-500/50 text-white placeholder:text-zinc-500 resize-none rounded-2xl p-4 text-sm"
+                          className="relative bg-black/40 border-white/10 focus:border-orange-500/50 text-white placeholder:text-zinc-500 resize-none rounded-2xl p-4 text-sm"
                         />
                       </div>
                     ) : (
@@ -181,7 +181,7 @@ export function AIOptimizerRefactored() {
                         {/* Personal Info Section */}
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                           <div className="flex items-center gap-2 mb-3">
-                            <User className="h-4 w-4 text-blue-400" />
+                            <User className="h-4 w-4 text-orange-300" />
                             <span className="text-sm font-medium text-zinc-300">Personal Information</span>
                           </div>
                           <div className="grid grid-cols-2 gap-3">
@@ -215,7 +215,7 @@ export function AIOptimizerRefactored() {
                         {/* Summary Section */}
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                           <div className="flex items-center gap-2 mb-3">
-                            <FileText className="h-4 w-4 text-purple-400" />
+                            <FileText className="h-4 w-4 text-orange-400" />
                             <span className="text-sm font-medium text-zinc-300">Professional Summary</span>
                           </div>
                           <Textarea
@@ -272,7 +272,7 @@ export function AIOptimizerRefactored() {
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <GraduationCap className="h-4 w-4 text-yellow-400" />
+                              <GraduationCap className="h-4 w-4 text-orange-300" />
                               <span className="text-sm font-medium text-zinc-300">Education ({parsedResume.education.length})</span>
                             </div>
                             <Button variant="ghost" size="sm" onClick={addEducation} className="h-7 text-xs text-primary hover:bg-primary/20">
@@ -313,7 +313,7 @@ export function AIOptimizerRefactored() {
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <FolderKanban className="h-4 w-4 text-cyan-400" />
+                              <FolderKanban className="h-4 w-4 text-orange-300" />
                               <span className="text-sm font-medium text-zinc-300">Projects ({parsedResume.projects?.length || 0})</span>
                             </div>
                             <Button variant="ghost" size="sm" onClick={addProject} className="h-7 text-xs text-primary hover:bg-primary/20">
@@ -393,7 +393,7 @@ export function AIOptimizerRefactored() {
             <Button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !jobDescription.trim() || (!resumeText.trim() && !parsedResume)}
-              className="w-full h-12 text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 border-0 shadow-[0_0_20px_-5px_rgba(124,58,237,0.5)] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none rounded-xl"
+              className="w-full h-12 text-lg font-bold bg-gradient-to-r from-orange-500 to-orange-300 hover:from-orange-400 hover:to-orange-200 border-0 shadow-[0_0_24px_-8px_rgba(255,122,26,0.55)] transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none rounded-xl"
             >
               {isAnalyzing ? (
                 <>

@@ -26,7 +26,7 @@ function SignInContent() {
               repeat: Infinity,
               repeatType: "reverse",
             }}
-            className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] bg-purple-500/10 rounded-full blur-3xl"
+            className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] bg-orange-500/12 rounded-full blur-3xl"
           />
           <motion.div
             animate={{
@@ -38,7 +38,7 @@ function SignInContent() {
               repeat: Infinity,
               repeatType: "reverse",
             }}
-            className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-500/10 rounded-full blur-3xl"
+            className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-orange-300/10 rounded-full blur-3xl"
           />
           <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20 bg-center" />
         </div>
@@ -62,16 +62,16 @@ function SignInContent() {
 
       {/* Right Side - Form */}
       <div className="flex items-center justify-center p-8 bg-background relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/8 to-transparent pointer-events-none" />
 
         <div className="w-full max-w-md space-y-8 relative z-10">
           {searchParams.get('timeout') === 'true' && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="p-4 rounded-lg border border-yellow-500/20 bg-yellow-500/10 text-yellow-200 text-sm flex items-center gap-2"
+              className="p-4 rounded-lg border border-orange-500/20 bg-orange-500/10 text-orange-100 text-sm flex items-center gap-2"
             >
-              <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
               Session expired due to inactivity.
             </motion.div>
           )}

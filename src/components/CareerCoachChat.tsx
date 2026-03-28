@@ -60,8 +60,8 @@ export function CareerCoachChat() {
     <div className="grid h-full grid-cols-1 grid-rows-1 gap-6 overflow-hidden lg:grid-cols-3">
       {/* Main Chat Panel - Fixed height with internal scroll */}
       <div className="lg:col-span-2 min-h-0 overflow-hidden">
-        <Card className="flex h-full flex-col overflow-hidden">
-          <CardHeader className="flex-shrink-0 border-b">
+        <Card className="futuristic-card flex h-full flex-col overflow-hidden border-neutral-800 bg-neutral-900/90">
+          <CardHeader className="flex-shrink-0 border-b border-white/10 bg-white/5">
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
               AI Career Coach
@@ -109,8 +109,8 @@ export function CareerCoachChat() {
                       <div
                         className={`max-w-[80%] rounded-lg p-4 ${
                           message.role === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
+                            ? 'bg-orange-500 text-white shadow-[0_0_24px_-12px_rgba(255,122,26,0.7)]'
+                            : 'border border-white/10 bg-white/5 text-white'
                         }`}
                       >
                         <p className="whitespace-pre-wrap text-sm">{message.content}</p>
@@ -137,7 +137,7 @@ export function CareerCoachChat() {
                         <Bot className="h-4 w-4 text-primary" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="rounded-lg bg-muted p-4">
+                    <div className="rounded-lg border border-white/10 bg-white/5 p-4">
                       <div className="flex gap-1">
                         <motion.div
                           animate={{ scale: [1, 1.2, 1] }}
@@ -163,16 +163,16 @@ export function CareerCoachChat() {
             </div>
             
             {/* Fixed Input Area - Stays at bottom */}
-            <div className="flex-shrink-0 border-t px-6 py-4">
+            <div className="flex-shrink-0 border-t border-white/10 bg-white/5 px-6 py-4">
               <form onSubmit={handleSubmit} className="flex w-full gap-2">
                 <Input
                   placeholder="Ask me anything about your career..."
                   value={input}
                   onChange={handleInputChange}
                   disabled={isLoading}
-                  className="flex-1"
+                  className="flex-1 bg-black/40 border-white/10 text-white placeholder:text-zinc-500 focus:border-orange-500/60"
                 />
-                <Button type="submit" disabled={!input.trim() || isLoading}>
+                <Button type="submit" disabled={!input.trim() || isLoading} className="bg-orange-500 hover:bg-orange-400 text-white">
                   <Send className="h-4 w-4" />
                 </Button>
               </form>
@@ -184,27 +184,27 @@ export function CareerCoachChat() {
       {/* Right Sidebar - Fixed with internal scroll */}
       <div className="flex flex-col gap-6 overflow-hidden min-h-0">
         {/* Quick Tips Card */}
-        <Card className="flex-shrink-0">
+        <Card className="futuristic-card flex-shrink-0 border-neutral-800 bg-neutral-900/90">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-yellow-500" />
+              <Sparkles className="h-5 w-5 text-orange-400" />
               Quick Tips
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="rounded-lg bg-muted p-3">
+            <div className="rounded-lg border border-white/10 bg-white/5 p-3">
               <h4 className="mb-1 text-sm font-medium">Use Action Verbs</h4>
               <p className="text-xs text-muted-foreground">
                 Start bullet points with strong verbs like "Led", "Developed", "Increased"
               </p>
             </div>
-            <div className="rounded-lg bg-muted p-3">
+            <div className="rounded-lg border border-white/10 bg-white/5 p-3">
               <h4 className="mb-1 text-sm font-medium">Quantify Results</h4>
               <p className="text-xs text-muted-foreground">
                 Include numbers, percentages, and metrics to show impact
               </p>
             </div>
-            <div className="rounded-lg bg-muted p-3">
+            <div className="rounded-lg border border-white/10 bg-white/5 p-3">
               <h4 className="mb-1 text-sm font-medium">Tailor Content</h4>
               <p className="text-xs text-muted-foreground">
                 Customize your resume for each job application
@@ -214,7 +214,7 @@ export function CareerCoachChat() {
         </Card>
 
         {/* Suggested Questions Card - Scrollable */}
-        <Card className="flex min-h-0 flex-1 flex-col">
+        <Card className="futuristic-card flex min-h-0 flex-1 flex-col border-neutral-800 bg-neutral-900/90">
           <CardHeader className="flex-shrink-0">
             <CardTitle>Suggested Questions</CardTitle>
           </CardHeader>
@@ -224,7 +224,7 @@ export function CareerCoachChat() {
                 <Button
                   key={index}
                   variant="outline"
-                  className="h-auto w-full justify-start py-3 text-left"
+                  className="h-auto w-full justify-start border-white/10 bg-white/5 py-3 text-left text-white hover:border-orange-500/40 hover:bg-orange-500/10"
                   onClick={() => handleSendQuestion(question)}
                 >
                   <span className="text-sm">{question}</span>

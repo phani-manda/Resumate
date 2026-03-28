@@ -36,7 +36,7 @@ const skillDistribution = [
   { name: "Other", value: 15 },
 ]
 
-const COLORS = ["#8b5cf6", "#06b6d4", "#f59e0b", "#10b981"]
+const COLORS = ["#ff7a1a", "#ffb56b", "#9a5a2e", "#f5d0a1"]
 
 function BentoCard({ children, className, delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) {
   return (
@@ -46,7 +46,7 @@ function BentoCard({ children, className, delay = 0 }: { children: React.ReactNo
       transition={{ duration: 0.5, delay }}
       className={cn("glass-panel rounded-3xl p-6 flex flex-col justify-between overflow-hidden relative group border-white/5", className)}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       {children}
     </motion.div>
   )
@@ -58,10 +58,10 @@ export function StatsDashboard() {
       {/* Overview Stats - Top Row */}
       <BentoCard delay={0.1}>
         <div className="flex justify-between items-start mb-4">
-          <div className="p-3 bg-purple-500/20 rounded-2xl text-purple-400">
+          <div className="p-3 bg-orange-500/15 rounded-2xl text-orange-300">
             <Eye className="h-6 w-6" />
           </div>
-          <span className="text-xs font-medium bg-green-500/10 text-green-400 px-2 py-1 rounded-full flex items-center gap-1">
+          <span className="text-xs font-medium bg-orange-500/10 text-orange-200 px-2 py-1 rounded-full flex items-center gap-1">
             <TrendingUp className="h-3 w-3" /> +16%
           </span>
         </div>
@@ -73,10 +73,10 @@ export function StatsDashboard() {
 
       <BentoCard delay={0.2}>
         <div className="flex justify-between items-start mb-4">
-          <div className="p-3 bg-blue-500/20 rounded-2xl text-blue-400">
+          <div className="p-3 bg-orange-500/15 rounded-2xl text-orange-300">
             <Download className="h-6 w-6" />
           </div>
-          <span className="text-xs font-medium bg-green-500/10 text-green-400 px-2 py-1 rounded-full flex items-center gap-1">
+          <span className="text-xs font-medium bg-orange-500/10 text-orange-200 px-2 py-1 rounded-full flex items-center gap-1">
             <TrendingUp className="h-3 w-3" /> +23%
           </span>
         </div>
@@ -88,7 +88,7 @@ export function StatsDashboard() {
 
       <BentoCard delay={0.3}>
         <div className="flex justify-between items-start mb-4">
-          <div className="p-3 bg-amber-500/20 rounded-2xl text-amber-400">
+          <div className="p-3 bg-orange-500/15 rounded-2xl text-orange-300">
             <Target className="h-6 w-6" />
           </div>
         </div>
@@ -100,7 +100,7 @@ export function StatsDashboard() {
 
       <BentoCard delay={0.4}>
         <div className="flex justify-between items-start mb-4">
-          <div className="p-3 bg-emerald-500/20 rounded-2xl text-emerald-400">
+          <div className="p-3 bg-orange-500/15 rounded-2xl text-orange-300">
             <Award className="h-6 w-6" />
           </div>
         </div>
@@ -133,10 +133,10 @@ export function StatsDashboard() {
               <Line
                 type="monotone"
                 dataKey="views"
-                stroke="#8b5cf6"
+                stroke="#ff7a1a"
                 strokeWidth={4}
-                dot={{ fill: "#18181b", stroke: "#8b5cf6", strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 8, fill: "#8b5cf6" }}
+                dot={{ fill: "#18181b", stroke: "#ff7a1a", strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 8, fill: "#ff7a1a" }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -198,7 +198,7 @@ export function StatsDashboard() {
             <h3 className="text-lg font-semibold text-white">Optimization Details</h3>
             <p className="text-sm text-zinc-400">Category performance breakdown</p>
           </div>
-          <Award className="text-yellow-500 h-6 w-6" />
+          <Award className="text-orange-400 h-6 w-6" />
         </div>
         <div className="flex-1 w-full min-h-0">
           <ResponsiveContainer width="100%" height="100%">
@@ -213,7 +213,7 @@ export function StatsDashboard() {
                   color: "#fff"
                 }}
               />
-              <Bar dataKey="score" fill="#3b82f6" radius={[0, 4, 4, 0]} background={{ fill: 'rgba(255,255,255,0.05)' }} />
+              <Bar dataKey="score" fill="#ff7a1a" radius={[0, 4, 4, 0]} background={{ fill: 'rgba(255,255,255,0.05)' }} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -236,7 +236,7 @@ export function StatsDashboard() {
                   initial={{ width: 0 }}
                   whileInView={{ width: `${skill.value}%` }}
                   transition={{ duration: 1, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
+                  className="h-full bg-gradient-to-r from-orange-500 to-orange-300 rounded-full"
                 />
               </div>
             </div>

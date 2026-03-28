@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { fadeInUp } from "@/lib/animation";
 
-// Icon mapping for different empty state types
 const iconMap = {
   resume: FileText,
   optimizer: Target,
@@ -24,7 +23,6 @@ const iconMap = {
   search: SearchX,
 } as const;
 
-// Accent icon mapping
 const accentIconMap = {
   resume: Sparkles,
   optimizer: Zap,
@@ -33,7 +31,6 @@ const accentIconMap = {
   search: null,
 } as const;
 
-// Preset configurations for common empty states
 const presets = {
   resume: {
     headline: "Your career story starts here",
@@ -41,8 +38,8 @@ const presets = {
       "Create your first resume and let AI help you optimize it for your dream job.",
     ctaText: "Create First Resume",
     ctaHref: "/builder",
-    iconColor: "text-purple-400",
-    glowColor: "shadow-purple-500/20",
+    iconColor: "text-orange-300",
+    glowColor: "shadow-orange-500/20",
   },
   optimizer: {
     headline: "No resume analyzed yet",
@@ -50,8 +47,8 @@ const presets = {
       "Upload a resume and job description to get personalized ATS optimization suggestions.",
     ctaText: "Upload & Analyze",
     ctaHref: "/optimizer",
-    iconColor: "text-blue-400",
-    glowColor: "shadow-blue-500/20",
+    iconColor: "text-orange-300",
+    glowColor: "shadow-orange-500/20",
   },
   coach: {
     headline: "Ask your first question",
@@ -59,17 +56,17 @@ const presets = {
       "Get personalized career advice, interview tips, and resume feedback from your AI coach.",
     ctaText: "Start Conversation",
     ctaHref: "/coach",
-    iconColor: "text-emerald-400",
-    glowColor: "shadow-emerald-500/20",
+    iconColor: "text-orange-300",
+    glowColor: "shadow-orange-500/20",
   },
   dashboard: {
-    headline: "No data yet — start building!",
+    headline: "No data yet - start building!",
     description:
       "Create and optimize your resumes to see analytics and track your progress here.",
     ctaText: "Go to Builder",
     ctaHref: "/builder",
-    iconColor: "text-amber-400",
-    glowColor: "shadow-amber-500/20",
+    iconColor: "text-orange-300",
+    glowColor: "shadow-orange-500/20",
   },
   search: {
     headline: "No matches found",
@@ -85,45 +82,17 @@ const presets = {
 type EmptyStateType = keyof typeof presets;
 
 interface EmptyStateProps {
-  /** Preset type for common empty states */
   type?: EmptyStateType;
-  /** Custom headline (overrides preset) */
   headline?: string;
-  /** Custom description (overrides preset) */
   description?: string;
-  /** Custom CTA button text (overrides preset) */
   ctaText?: string;
-  /** Custom CTA button href (overrides preset) */
   ctaHref?: string;
-  /** Custom CTA click handler (for actions like clearing filters) */
   onCtaClick?: () => void;
-  /** Custom icon component (overrides preset) */
   icon?: ReactNode;
-  /** Additional CSS classes */
   className?: string;
-  /** Compact mode for smaller containers */
   compact?: boolean;
 }
 
-/**
- * EmptyState Component
- *
- * Displays a friendly empty state with icon, headline, description, and CTA.
- * Use presets for common cases or customize fully.
- *
- * @example
- * // Using preset
- * <EmptyState type="resume" />
- *
- * @example
- * // Custom empty state
- * <EmptyState
- *   headline="No results"
- *   description="Try a different search term"
- *   ctaText="Clear Search"
- *   onCtaClick={() => setSearch('')}
- * />
- */
 export function EmptyState({
   type = "resume",
   headline,
@@ -147,7 +116,10 @@ export function EmptyState({
   const handleCtaClick = () => {
     if (onCtaClick) {
       onCtaClick();
-    } else if (finalCtaHref) {
+      return;
+    }
+
+    if (finalCtaHref) {
       window.location.href = finalCtaHref;
     }
   };
@@ -159,33 +131,26 @@ export function EmptyState({
       animate="visible"
       className={cn(
         "flex flex-col items-center justify-center text-center",
-        compact ? "py-8 px-4" : "py-16 px-6",
+        compact ? "px-4 py-8" : "px-6 py-16",
         className
       )}
       role="status"
       aria-label={finalHeadline}
     >
-      {/* Icon Container */}
       <div
         className={cn(
-          "relative mb-6 flex items-center justify-center rounded-2xl",
+          "relative mb-6 flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 shadow-lg",
           compact ? "h-16 w-16" : "h-20 w-20",
-          "bg-white/5 border border-white/10",
-          preset.glowColor,
-          "shadow-lg"
+          preset.glowColor
         )}
       >
         {icon || (
           <Icon
-            className={cn(
-              compact ? "h-8 w-8" : "h-10 w-10",
-              preset.iconColor
-            )}
+            className={cn(compact ? "h-8 w-8" : "h-10 w-10", preset.iconColor)}
             aria-hidden="true"
           />
         )}
 
-        {/* Accent icon */}
         {AccentIcon && (
           <div className="absolute -right-1 -top-1">
             <AccentIcon
@@ -196,35 +161,19 @@ export function EmptyState({
         )}
       </div>
 
-      {/* Headline */}
-      <h3
-        className={cn(
-          "font-semibold text-white",
-          compact ? "text-lg" : "text-xl"
-        )}
-      >
+      <h3 className={cn("font-semibold text-white", compact ? "text-lg" : "text-xl")}>
         {finalHeadline}
       </h3>
 
-      {/* Description */}
-      <p
-        className={cn(
-          "mt-2 max-w-md text-zinc-400",
-          compact ? "text-sm" : "text-base"
-        )}
-      >
+      <p className={cn("mt-2 max-w-md text-zinc-400", compact ? "text-sm" : "text-base")}>
         {finalDescription}
       </p>
 
-      {/* CTA Button */}
       {finalCtaText && (
         <Button
           onClick={handleCtaClick}
           className={cn(
-            "mt-6 gap-2",
-            "bg-gradient-to-r from-purple-600 to-blue-600",
-            "hover:from-purple-500 hover:to-blue-500",
-            "shadow-[0_0_20px_-5px_rgba(124,58,237,0.5)]",
+            "mt-6 gap-2 bg-gradient-to-r from-orange-500 to-orange-300 text-white shadow-[0_0_24px_-8px_rgba(255,122,26,0.55)] hover:from-orange-400 hover:to-orange-200",
             compact ? "text-sm" : ""
           )}
         >
@@ -235,11 +184,6 @@ export function EmptyState({
   );
 }
 
-/**
- * Inline Empty State
- *
- * A smaller version for inline use (e.g., in sidebars, dropdowns)
- */
 interface InlineEmptyStateProps {
   message: string;
   ctaText?: string;
@@ -254,19 +198,14 @@ export function InlineEmptyState({
   className,
 }: InlineEmptyStateProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-col items-center py-6 px-4 text-center",
-        className
-      )}
-    >
+    <div className={cn("flex flex-col items-center px-4 py-6 text-center", className)}>
       <p className="text-sm text-zinc-400">{message}</p>
       {ctaText && onCtaClick && (
         <Button
           variant="ghost"
           size="sm"
           onClick={onCtaClick}
-          className="mt-2 text-purple-400 hover:text-purple-300"
+          className="mt-2 text-orange-300 hover:text-orange-200"
         >
           {ctaText}
         </Button>
