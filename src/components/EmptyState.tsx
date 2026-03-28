@@ -11,7 +11,7 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { fadeInUp } from "@/lib/animation";
 
@@ -34,17 +34,7 @@ const accentIconMap = {
 } as const;
 
 // Preset configurations for common empty states
-const presets: Record<
-  string,
-  {
-    headline: string;
-    description: string;
-    ctaText: string;
-    ctaHref: string;
-    iconColor: string;
-    glowColor: string;
-  }
-> = {
+const presets = {
   resume: {
     headline: "Your career story starts here",
     description:
@@ -90,11 +80,13 @@ const presets: Record<
     iconColor: "text-zinc-400",
     glowColor: "shadow-zinc-500/10",
   },
-};
+} as const;
+
+type EmptyStateType = keyof typeof presets;
 
 interface EmptyStateProps {
   /** Preset type for common empty states */
-  type?: keyof typeof presets;
+  type?: EmptyStateType;
   /** Custom headline (overrides preset) */
   headline?: string;
   /** Custom description (overrides preset) */
@@ -143,9 +135,8 @@ export function EmptyState({
   className,
   compact = false,
 }: EmptyStateProps) {
-  const preset = presets[type] || presets.resume;
-
-  const Icon = iconMap[type] || FileText;
+  const preset = presets[type];
+  const Icon = iconMap[type];
   const AccentIcon = accentIconMap[type];
 
   const finalHeadline = headline || preset.headline;

@@ -2,7 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -60,15 +60,8 @@ export class ErrorBoundary extends Component<
   }
 
   private async captureToSentry(error: Error, errorInfo: ErrorInfo) {
-    try {
-      const Sentry = await import("@sentry/nextjs").catch(() => null);
-      if (Sentry?.captureException) {
-        Sentry.captureException(error, {
-          extra: { componentStack: errorInfo.componentStack },
-        });
-      }
-    } catch {
-      // Sentry not available
+    if (process.env.NODE_ENV === "development") {
+      console.error("[ErrorBoundary][Sentry disabled]", error, errorInfo.componentStack)
     }
   }
 

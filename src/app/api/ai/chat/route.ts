@@ -3,7 +3,6 @@ import { streamText } from 'ai'
 import { auth } from '@clerk/nextjs/server'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
-import { v4 as uuidv4 } from 'crypto'
 
 export const maxDuration = 30
 

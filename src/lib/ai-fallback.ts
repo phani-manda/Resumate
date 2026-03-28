@@ -6,13 +6,13 @@
 
 import { createGroq } from '@ai-sdk/groq'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
-import { generateText, streamText, LanguageModel } from 'ai'
+import { generateText, streamText } from 'ai'
 
 export type AIProvider = 'groq' | 'google'
 
 interface ProviderConfig {
   name: AIProvider
-  model: LanguageModel
+  model: unknown
   available: boolean
 }
 
@@ -73,7 +73,7 @@ export async function generateWithFallback(
       console.log(`Attempting AI generation with ${provider.name}...`)
 
       const result = await generateText({
-        model: provider.model,
+        model: provider.model as Parameters<typeof generateText>[0]['model'],
         prompt,
         system,
         maxTokens: options?.maxTokens ?? 2000,
@@ -120,7 +120,7 @@ export async function streamWithFallback(
       console.log(`Attempting AI stream with ${provider.name}...`)
 
       const result = streamText({
-        model: provider.model,
+        model: provider.model as Parameters<typeof streamText>[0]['model'],
         prompt,
         system,
         maxTokens: options?.maxTokens ?? 2000,
@@ -155,7 +155,7 @@ export async function checkProviderHealth(): Promise<Record<AIProvider, boolean>
 
     try {
       await generateText({
-        model: provider.model,
+        model: provider.model as Parameters<typeof generateText>[0]['model'],
         prompt: 'Say "OK"',
         maxTokens: 10,
       })
@@ -169,7 +169,7 @@ export async function checkProviderHealth(): Promise<Record<AIProvider, boolean>
 }
 
 // Get model for a specific provider
-export function getProviderModel(provider: AIProvider): LanguageModel | null {
+export function getProviderModel(provider: AIProvider): unknown | null {
   const config = providerChain.find(p => p.name === provider)
   return config?.available ? config.model : null
 }

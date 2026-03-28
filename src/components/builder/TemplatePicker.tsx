@@ -11,7 +11,7 @@ export interface ResumeTemplate {
   name: string
   description: string
   category: 'professional' | 'creative' | 'technical' | 'academic'
-  icon: React.ComponentType<{ className?: string }>
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
   colors: {
     primary: string
     accent: string

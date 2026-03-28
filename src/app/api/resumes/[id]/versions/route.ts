@@ -29,14 +29,19 @@ export async function GET(
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
-        versionNumber: true,
         snapshot: true,
-        changeDescription: true,
+        label: true,
         createdAt: true,
       },
     })
 
-    return NextResponse.json(versions)
+    return NextResponse.json(
+      versions.map((version, index) => ({
+        ...version,
+        versionNumber: versions.length - index,
+        changeDescription: version.label,
+      }))
+    )
   } catch (error) {
     console.error('Error fetching resume versions:', error)
     return NextResponse.json(
@@ -58,7 +63,7 @@ export async function POST(
 
     const { id } = await params
     const body = await req.json()
-    const { changeDescription } = body
+    const { changeDescription, label } = body
 
     // Get the resume with current data
     const resume = await prisma.resume.findFirst({
@@ -70,18 +75,16 @@ export async function POST(
     }
 
     // Get the latest version number
-    const latestVersion = await prisma.resumeVersion.findFirst({
+    const versionCount = await prisma.resumeVersion.count({
       where: { resumeId: id },
-      orderBy: { versionNumber: 'desc' },
     })
 
-    const newVersionNumber = (latestVersion?.versionNumber || 0) + 1
+    const newVersionNumber = versionCount + 1
 
     // Create a new version
     const version = await prisma.resumeVersion.create({
       data: {
         resumeId: id,
-        versionNumber: newVersionNumber,
         snapshot: {
           personalInfo: resume.personalInfo,
           summary: resume.summary,
@@ -90,11 +93,15 @@ export async function POST(
           projects: resume.projects,
           skills: resume.skills,
         },
-        changeDescription: changeDescription || null,
+        label: changeDescription || label || null,
       },
     })
 
-    return NextResponse.json(version)
+    return NextResponse.json({
+      ...version,
+      versionNumber: newVersionNumber,
+      changeDescription: version.label,
+    })
   } catch (error) {
     console.error('Error creating resume version:', error)
     return NextResponse.json(

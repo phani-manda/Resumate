@@ -41,11 +41,20 @@ interface Education {
   graduationDate: string
 }
 
+interface Project {
+  id: string
+  name: string
+  description: string
+  technologies: string[]
+  link?: string
+}
+
 interface ResumeData {
   personalInfo: PersonalInfo
   summary: string
   experiences: Experience[]
   education: Education[]
+  projects: Project[]
   skills: string[]
 }
 
@@ -62,6 +71,7 @@ export function ResumeBuilder() {
     summary: '',
     experiences: [],
     education: [],
+    projects: [],
     skills: [],
   })
 
@@ -275,6 +285,13 @@ export function ResumeBuilder() {
           degree: edu.degree || '',
           field: edu.field || '',
           graduationDate: edu.graduationDate || '',
+        })),
+        projects: (parsedData.projects || []).map((proj: any, index: number) => ({
+          id: proj.id || `${Date.now()}-${index}`,
+          name: proj.name || '',
+          description: proj.description || '',
+          technologies: proj.technologies || [],
+          link: proj.link || '',
         })),
         skills: parsedData.skills || [],
       })

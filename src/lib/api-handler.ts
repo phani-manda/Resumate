@@ -37,17 +37,8 @@ function errorResponse(
 
 // Sentry error capture (optional - gracefully handle if not installed)
 async function captureException(error: Error, extra?: Record<string, unknown>) {
-  try {
-    // Dynamic import to avoid build errors if Sentry isn't installed
-    const Sentry = await import("@sentry/nextjs").catch(() => null);
-    if (Sentry?.captureException) {
-      Sentry.captureException(error, { extra });
-    }
-  } catch {
-    // Sentry not available - log to console in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("[Error Capture]", error, extra);
-    }
+  if (process.env.NODE_ENV === "development") {
+    console.error("[Error Capture]", error, extra)
   }
 }
 
