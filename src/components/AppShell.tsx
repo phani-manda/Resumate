@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -10,13 +10,19 @@ import {
     MessageSquare,
     Menu,
     X,
+    User,
 } from "lucide-react"
 import { UserButton } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+    const [mounted, setMounted] = useState(false)
     const pathname = usePathname()
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     const navItems = [
         { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -68,26 +74,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-neutral-800 border-2 border-neutral-700 flex items-center justify-center overflow-hidden hover:border-orange-500 transition-colors">
-                        <UserButton
-                            appearance={{
-                                elements: {
-                                    avatarBox: "h-10 w-10",
-                                }
-                            }}
-                        />
+                        {mounted ? (
+                            <UserButton
+                                appearance={{
+                                    elements: {
+                                        avatarBox: "h-10 w-10",
+                                    }
+                                }}
+                            />
+                        ) : (
+                            <User className="h-5 w-5 text-neutral-500" />
+                        )}
                     </div>
                 </div>
             </nav>
 
             {/* Main Content Wrapper */}
-            <main className="pt-20 flex-1 overflow-auto lg:block hidden bg-black">
-                {children}
+            <main className="pt-20 flex-1 min-h-0 overflow-hidden lg:flex hidden flex-col bg-black">
+                <div className="flex-1 min-h-0 overflow-hidden">
+                    {children}
+                </div>
             </main>
 
             {/* Mobile Layout */}
             <div className="lg:hidden flex flex-col h-screen w-full bg-black">
                 {/* Top Mobile Bar */}
-                <div className="h-16 border-b border-neutral-800 bg-neutral-950 flex items-center justify-between px-4">
+                <div className="h-16 flex-shrink-0 border-b border-neutral-800 bg-neutral-950 flex items-center justify-between px-4">
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
                             <span className="text-lg font-black text-white">R</span>
@@ -103,7 +115,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>
 
                 {/* Mobile Content */}
-                <div className="flex-1 overflow-auto">
+                <div className="flex-1 min-h-0 overflow-auto">
                     {children}
                 </div>
             </div>
@@ -138,7 +150,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             ))}
                         </nav>
                         <div className="mt-auto pt-4 border-t border-neutral-800">
-                            <UserButton showName />
+                            {mounted && <UserButton showName />}
                         </div>
                     </div>
                 </div>

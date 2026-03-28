@@ -6,10 +6,9 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
-import { ScrollArea } from '@/components/ui/ScrollArea'
 import { Separator } from '@/components/ui/Separator'
-import { Plus, Trash2, Download, Save, Upload, Loader2, FileDown, User, Briefcase, GraduationCap, Zap, ChevronRight, Sparkles } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/Dialog'
+import { Plus, Trash2, Download, Save, Upload, Loader2, User, Briefcase, GraduationCap, Zap, ChevronDown, Sparkles, Maximize2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
@@ -71,10 +70,16 @@ export function ResumeBuilder() {
   const [isUploading, setIsUploading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
   const [resumeId, setResumeId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState('personal')
+  const [expandedSection, setExpandedSection] = useState<string | null>('personal')
+  const [showFullPreview, setShowFullPreview] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const previewRef = useRef<HTMLDivElement>(null)
+  const fullPreviewRef = useRef<HTMLDivElement>(null)
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSection(expandedSection === sectionId ? null : sectionId)
+  }
 
   const handleAutoSave = useCallback(async () => {
     if (!resumeData.personalInfo.fullName && !resumeData.personalInfo.email) {
@@ -210,32 +215,74 @@ export function ResumeBuilder() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    const validTypes = ['text/plain', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    const validTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ]
     if (!validTypes.includes(file.type)) {
-      toast.error('Invalid file type.')
+      toast.error('Please upload a PDF or DOCX file.')
+      return
+    }
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB')
       return
     }
 
     try {
       setIsUploading(true)
-      const text = await file.text()
+      toast.loading('Parsing your resume...', { id: 'resume-upload' })
 
-      const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/)
-      const phoneMatch = text.match(/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/)
+      const formData = new FormData()
+      formData.append('file', file)
 
-      setResumeData(prev => ({
-        ...prev,
+      const response = await fetch('/api/upload/parse', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to parse resume')
+      }
+
+      const parsedData = await response.json()
+
+      // Populate all resume sections with parsed data
+      setResumeData({
         personalInfo: {
-          ...prev.personalInfo,
-          email: emailMatch?.[0] || prev.personalInfo.email,
-          phone: phoneMatch?.[0] || prev.personalInfo.phone,
+          fullName: parsedData.personalInfo?.fullName || '',
+          email: parsedData.personalInfo?.email || '',
+          phone: parsedData.personalInfo?.phone || '',
+          location: parsedData.personalInfo?.location || '',
+          linkedin: parsedData.personalInfo?.linkedin || '',
+          portfolio: parsedData.personalInfo?.portfolio || '',
         },
-        summary: text.slice(0, 500),
-      }))
+        summary: parsedData.summary || '',
+        experiences: (parsedData.experiences || []).map((exp: any) => ({
+          id: exp.id || Date.now().toString(),
+          company: exp.company || '',
+          position: exp.position || '',
+          startDate: exp.startDate || '',
+          endDate: exp.endDate || '',
+          description: exp.description || '',
+        })),
+        education: (parsedData.education || []).map((edu: any) => ({
+          id: edu.id || Date.now().toString(),
+          institution: edu.institution || '',
+          degree: edu.degree || '',
+          field: edu.field || '',
+          graduationDate: edu.graduationDate || '',
+        })),
+        skills: parsedData.skills || [],
+      })
 
-      toast.success('Data extraction complete.')
+      toast.success('Resume parsed successfully! All sections populated.', { id: 'resume-upload' })
     } catch (error) {
-      toast.error('Parsing failed.')
+      console.error('Upload error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to parse resume', { id: 'resume-upload' })
     } finally {
       setIsUploading(false)
       if (fileInputRef.current) {
@@ -326,245 +373,343 @@ export function ResumeBuilder() {
     })
   }
 
-  const tabs = [
-    { id: 'personal', label: 'Identity', icon: User },
-    { id: 'experience', label: 'Missions', icon: Briefcase },
-    { id: 'education', label: 'Training', icon: GraduationCap },
-    { id: 'skills', label: 'Arsenal', icon: Zap },
+  const sections = [
+    { id: 'personal', label: 'Personal Info', icon: User },
+    { id: 'experience', label: 'Experience', icon: Briefcase },
+    { id: 'education', label: 'Education', icon: GraduationCap },
+    { id: 'skills', label: 'Skills', icon: Zap },
   ]
 
+  // Resume Preview Component (reusable for both inline and full preview)
+  const ResumePreview = ({ forPdf = false }: { forPdf?: boolean }) => (
+    <div
+      ref={forPdf ? fullPreviewRef : previewRef}
+      className="bg-white text-black mx-auto"
+      style={{ 
+        width: forPdf ? '100%' : '100%',
+        maxWidth: forPdf ? '210mm' : undefined,
+        minHeight: forPdf ? 'auto' : 'auto',
+        aspectRatio: forPdf ? undefined : '210 / 297',
+        padding: forPdf ? '15mm' : '24px',
+        fontSize: forPdf ? '11px' : '12px',
+        lineHeight: '1.4',
+      }}
+    >
+      {/* Header */}
+      <header className="border-b-2 border-gray-800 pb-3 mb-4">
+        <h1 style={{ fontSize: '18px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '-0.025em' }}>
+          {resumeData.personalInfo.fullName || 'YOUR NAME'}
+        </h1>
+        <div style={{ fontSize: forPdf ? '11px' : '12px', marginTop: '6px', color: '#4b5563' }} className="flex flex-wrap gap-x-3">
+          {[
+            resumeData.personalInfo.email,
+            resumeData.personalInfo.phone,
+            resumeData.personalInfo.location,
+            resumeData.personalInfo.linkedin
+          ].filter(Boolean).map((item, i, arr) => (
+            <span key={i}>{item}{i < arr.length - 1 ? ' •' : ''}</span>
+          ))}
+        </div>
+      </header>
+
+      {/* Professional Summary */}
+      {resumeData.summary && (
+        <section className="mb-4">
+          <h2 style={{ fontSize: forPdf ? '12px' : '13px', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #d1d5db', marginBottom: '6px', paddingBottom: '2px', color: '#1f2937' }}>
+            Professional Profile
+          </h2>
+          <p style={{ fontSize: forPdf ? '11px' : '12px', color: '#374151' }}>{resumeData.summary}</p>
+        </section>
+      )}
+
+      {/* Experience */}
+      {resumeData.experiences.length > 0 && (
+        <section className="mb-4">
+          <h2 style={{ fontSize: forPdf ? '12px' : '13px', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #d1d5db', marginBottom: '6px', paddingBottom: '2px', color: '#1f2937' }}>
+            Experience
+          </h2>
+          {resumeData.experiences.map(exp => (
+            <div key={exp.id} className="mb-3">
+              <div className="flex justify-between items-baseline gap-2">
+                <h3 style={{ fontSize: forPdf ? '11px' : '12px', fontWeight: 'bold', color: '#111827' }}>{exp.position}</h3>
+                <span style={{ fontSize: forPdf ? '10px' : '11px', color: '#6b7280', whiteSpace: 'nowrap' }}>{exp.startDate} – {exp.endDate || 'Present'}</span>
+              </div>
+              <div style={{ fontSize: forPdf ? '11px' : '12px', fontWeight: '600', color: '#374151' }}>{exp.company}</div>
+              <p style={{ fontSize: forPdf ? '11px' : '12px', color: '#4b5563', whiteSpace: 'pre-wrap', marginTop: '2px' }}>{exp.description}</p>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* Education */}
+      {resumeData.education.length > 0 && (
+        <section className="mb-4">
+          <h2 style={{ fontSize: forPdf ? '12px' : '13px', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #d1d5db', marginBottom: '6px', paddingBottom: '2px', color: '#1f2937' }}>
+            Education
+          </h2>
+          {resumeData.education.map(edu => (
+            <div key={edu.id} className="mb-2">
+              <div className="flex justify-between gap-2">
+                <h3 style={{ fontSize: forPdf ? '11px' : '12px', fontWeight: 'bold', color: '#111827' }}>{edu.institution}</h3>
+                <span style={{ fontSize: forPdf ? '10px' : '11px', color: '#6b7280' }}>{edu.graduationDate}</span>
+              </div>
+              <div style={{ fontSize: forPdf ? '11px' : '12px', color: '#374151' }}>{edu.degree} {edu.field && `in ${edu.field}`}</div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* Projects */}
+      {resumeData.projects && resumeData.projects.length > 0 && (
+        <section className="mb-4">
+          <h2 style={{ fontSize: forPdf ? '12px' : '13px', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #d1d5db', marginBottom: '6px', paddingBottom: '2px', color: '#1f2937' }}>
+            Projects
+          </h2>
+          {resumeData.projects.map(proj => (
+            <div key={proj.id} className="mb-2">
+              <h3 style={{ fontSize: forPdf ? '11px' : '12px', fontWeight: 'bold', color: '#111827' }}>{proj.name}</h3>
+              {proj.description && <p style={{ fontSize: forPdf ? '11px' : '12px', color: '#374151' }}>{proj.description}</p>}
+              {proj.technologies && proj.technologies.length > 0 && (
+                <p style={{ fontSize: forPdf ? '10px' : '11px', color: '#6b7280', marginTop: '2px' }}>
+                  <span className="font-medium">Tech:</span> {proj.technologies.join(', ')}
+                </p>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* Skills */}
+      {resumeData.skills.length > 0 && (
+        <section>
+          <h2 style={{ fontSize: forPdf ? '12px' : '13px', fontWeight: 'bold', textTransform: 'uppercase', borderBottom: '1px solid #d1d5db', marginBottom: '6px', paddingBottom: '2px', color: '#1f2937' }}>
+            Skills
+          </h2>
+          <div style={{ fontSize: forPdf ? '11px' : '12px', color: '#374151' }}>
+            {resumeData.skills.join(' • ')}
+          </div>
+        </section>
+      )}
+    </div>
+  )
+
   return (
-    <div className="flex flex-col lg:flex-row h-full gap-4 lg:gap-6 pb-4">
-      {/* Sidebar Navigation - Mobile Top / Desktop Left */}
-      <div className="lg:w-64 flex-shrink-0 flex lg:flex-col gap-2 mb-4 lg:mb-0 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              "flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 w-full whitespace-nowrap text-left",
-              activeTab === tab.id
-                ? "glass-panel bg-primary/10 text-primary border-primary/20"
-                : "hover:bg-white/5 text-muted-foreground hover:text-white"
-            )}
+    <div className="flex flex-col lg:flex-row h-full min-h-0 gap-4 lg:gap-6">
+      {/* Left Panel - Collapsible Sections */}
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden lg:max-w-[50%]">
+        {/* Action Buttons Header */}
+        <div className="flex gap-2 mb-4 flex-wrap flex-shrink-0">
+          <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" onChange={handleFileUpload} className="hidden" />
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="border-white/10 hover:bg-white/5 rounded-lg text-sm"
+            onClick={() => fileInputRef.current?.click()} 
+            disabled={isUploading}
           >
-            <tab.icon className="h-5 w-5" />
-            <span className="font-medium">{tab.label}</span>
-            {activeTab === tab.id && (
-              <motion.div layoutId="active-pill" className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
-            )}
-          </button>
-        ))}
-
-        <Separator className="my-4 bg-white/10 hidden lg:block" />
-
-        {/* Actions Sidebar */}
-        <div className="hidden lg:flex flex-col gap-3">
-          <input ref={fileInputRef} type="file" accept=".txt,.pdf,.doc,.docx" onChange={handleFileUpload} className="hidden" />
-          <Button variant="outline" className="justify-start border-white/10 hover:bg-white/5 rounded-xl h-12" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-            <Upload className="mr-2 h-4 w-4" /> Import Data
+            {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+            Import
           </Button>
-          <Button variant="outline" className="justify-start border-white/10 hover:bg-white/5 rounded-xl h-12" onClick={handleManualSave} disabled={isSaving}>
-            <Save className="mr-2 h-4 w-4" /> Save Progress
+          <Button variant="outline" size="sm" className="border-white/10 hover:bg-white/5 rounded-lg text-sm" onClick={handleManualSave} disabled={isSaving}>
+            <Save className="mr-2 h-4 w-4" /> Save
           </Button>
-          <Button className="justify-start bg-gradient-to-r from-primary to-purple-400 hover:opacity-90 border-0 rounded-xl h-12" onClick={handleDownloadPDF} disabled={isDownloading}>
+          <Button size="sm" className="bg-gradient-to-r from-primary to-purple-400 hover:opacity-90 rounded-lg text-sm" onClick={handleDownloadPDF} disabled={isDownloading}>
             <Download className="mr-2 h-4 w-4" /> Export PDF
           </Button>
         </div>
-      </div>
 
-      {/* Main Form Area */}
-      <div className="flex-1 min-w-0 flex flex-col glass-panel rounded-3xl overflow-hidden border-white/10 shadow-2xl relative">
-        <ScrollArea className="flex-1 p-6">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-3xl mx-auto space-y-8"
-            >
-              {activeTab === 'personal' && (
-                <div className="grid gap-6 md:grid-cols-2">
-                  {/* Inputs rewritten with glass styles */}
-                  {[
-                    { id: 'fullName', label: 'Full Name', val: resumeData.personalInfo.fullName },
-                    { id: 'email', label: 'Email', val: resumeData.personalInfo.email, type: 'email' },
-                    { id: 'phone', label: 'Phone', val: resumeData.personalInfo.phone },
-                    { id: 'location', label: 'Location', val: resumeData.personalInfo.location },
-                    { id: 'linkedin', label: 'LinkedIn', val: resumeData.personalInfo.linkedin },
-                    { id: 'portfolio', label: 'Portfolio', val: resumeData.personalInfo.portfolio },
-                  ].map((field) => (
-                    <div key={field.id} className="space-y-2">
-                      <Label className="text-zinc-400">{field.label}</Label>
-                      <Input
-                        id={field.id}
-                        type={field.type || 'text'}
-                        value={field.val}
-                        onChange={e => setResumeData({ ...resumeData, personalInfo: { ...resumeData.personalInfo, [field.id]: e.target.value } })}
-                        className="bg-black/20 border-white/10 focus:border-primary/50 text-white placeholder:text-zinc-600"
-                      />
-                    </div>
-                  ))}
-                  <div className="col-span-2 space-y-2">
-                    <Label className="text-zinc-400">Professional Summary</Label>
-                    <Textarea
-                      rows={4}
-                      value={resumeData.summary}
-                      onChange={e => setResumeData({ ...resumeData, summary: e.target.value })}
-                      className="bg-black/20 border-white/10 focus:border-primary/50 text-white resize-none"
-                    />
-                  </div>
+        {/* Collapsible Sections */}
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+          {sections.map((section) => (
+            <div key={section.id} className="rounded-xl border border-white/10 overflow-hidden bg-black/20">
+              {/* Section Header */}
+              <button
+                onClick={() => toggleSection(section.id)}
+                className={cn(
+                  "w-full flex items-center justify-between p-4 transition-all",
+                  expandedSection === section.id 
+                    ? "bg-primary/10 text-primary" 
+                    : "hover:bg-white/5 text-white"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <section.icon className="h-5 w-5" />
+                  <span className="font-medium">{section.label}</span>
                 </div>
-              )}
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform duration-200",
+                  expandedSection === section.id && "rotate-180"
+                )} />
+              </button>
 
-              {activeTab === 'experience' && (
-                <div className="space-y-6">
-                  {resumeData.experiences.map((exp, idx) => (
-                    <div key={exp.id} className="group relative p-6 rounded-xl bg-white/5 border border-white/5 hover:border-primary/20 transition-colors">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <Input placeholder="Company" value={exp.company} onChange={e => updateExperience(exp.id, 'company', e.target.value)} className="bg-transparent border-b border-0 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary placeholder:text-zinc-600 font-bold text-lg" />
-                        <Input placeholder="Position" value={exp.position} onChange={e => updateExperience(exp.id, 'position', e.target.value)} className="bg-transparent border-b border-0 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary placeholder:text-zinc-600" />
-                        <div className="space-y-1"><Label className="text-xs text-zinc-500">Start</Label><Input type="month" value={exp.startDate} onChange={e => updateExperience(exp.id, 'startDate', e.target.value)} className="bg-black/20 border-white/10" /></div>
-                        <div className="space-y-1"><Label className="text-xs text-zinc-500">End</Label><Input type="month" value={exp.endDate} onChange={e => updateExperience(exp.id, 'endDate', e.target.value)} className="bg-black/20 border-white/10" /></div>
-                        <div className="col-span-2"><Textarea placeholder="Description..." value={exp.description} onChange={e => updateExperience(exp.id, 'description', e.target.value)} className="bg-black/20 border-white/10 min-h-[100px]" /></div>
-                      </div>
-                      <Button size="icon" variant="ghost" className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 hover:bg-destructive/20 hover:text-destructive" onClick={() => removeExperience(exp.id)}><Trash2 className="h-4 w-4" /></Button>
+              {/* Section Content */}
+              <AnimatePresence>
+                {expandedSection === section.id && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-4 pt-0 border-t border-white/5">
+                      {section.id === 'personal' && (
+                        <div className="grid gap-4 md:grid-cols-2 pt-4">
+                          {[
+                            { id: 'fullName', label: 'Full Name', val: resumeData.personalInfo.fullName },
+                            { id: 'email', label: 'Email', val: resumeData.personalInfo.email, type: 'email' },
+                            { id: 'phone', label: 'Phone', val: resumeData.personalInfo.phone },
+                            { id: 'location', label: 'Location', val: resumeData.personalInfo.location },
+                            { id: 'linkedin', label: 'LinkedIn', val: resumeData.personalInfo.linkedin },
+                            { id: 'portfolio', label: 'Portfolio', val: resumeData.personalInfo.portfolio },
+                          ].map((field) => (
+                            <div key={field.id} className="space-y-1">
+                              <Label className="text-zinc-400 text-xs">{field.label}</Label>
+                              <Input
+                                id={field.id}
+                                type={field.type || 'text'}
+                                value={field.val}
+                                onChange={e => setResumeData({ ...resumeData, personalInfo: { ...resumeData.personalInfo, [field.id]: e.target.value } })}
+                                className="bg-black/30 border-white/10 focus:border-primary/50 text-white h-9"
+                              />
+                            </div>
+                          ))}
+                          <div className="col-span-2 space-y-1">
+                            <Label className="text-zinc-400 text-xs">Professional Summary</Label>
+                            <Textarea
+                              rows={3}
+                              value={resumeData.summary}
+                              onChange={e => setResumeData({ ...resumeData, summary: e.target.value })}
+                              className="bg-black/30 border-white/10 focus:border-primary/50 text-white resize-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {section.id === 'experience' && (
+                        <div className="space-y-4 pt-4">
+                          {resumeData.experiences.map((exp) => (
+                            <div key={exp.id} className="group relative p-4 rounded-lg bg-white/5 border border-white/5">
+                              <div className="grid gap-3 md:grid-cols-2">
+                                <Input placeholder="Company" value={exp.company} onChange={e => updateExperience(exp.id, 'company', e.target.value)} className="bg-black/30 border-white/10 h-9" />
+                                <Input placeholder="Position" value={exp.position} onChange={e => updateExperience(exp.id, 'position', e.target.value)} className="bg-black/30 border-white/10 h-9" />
+                                <Input type="month" placeholder="Start" value={exp.startDate} onChange={e => updateExperience(exp.id, 'startDate', e.target.value)} className="bg-black/30 border-white/10 h-9" />
+                                <Input type="month" placeholder="End" value={exp.endDate} onChange={e => updateExperience(exp.id, 'endDate', e.target.value)} className="bg-black/30 border-white/10 h-9" />
+                                <div className="col-span-2">
+                                  <Textarea placeholder="Description..." value={exp.description} onChange={e => updateExperience(exp.id, 'description', e.target.value)} className="bg-black/30 border-white/10 min-h-[80px]" />
+                                </div>
+                              </div>
+                              <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 hover:bg-destructive/20 hover:text-destructive" onClick={() => removeExperience(exp.id)}>
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button onClick={addExperience} variant="outline" size="sm" className="w-full border-dashed border-white/20 hover:bg-white/5">
+                            <Plus className="mr-2 h-4 w-4" /> Add Experience
+                          </Button>
+                        </div>
+                      )}
+
+                      {section.id === 'education' && (
+                        <div className="space-y-4 pt-4">
+                          {resumeData.education.map((edu) => (
+                            <div key={edu.id} className="group relative p-4 rounded-lg bg-white/5 border border-white/5">
+                              <div className="grid gap-3 md:grid-cols-2">
+                                <Input placeholder="Institution" value={edu.institution} onChange={e => updateEducation(edu.id, 'institution', e.target.value)} className="bg-black/30 border-white/10 h-9" />
+                                <Input placeholder="Degree" value={edu.degree} onChange={e => updateEducation(edu.id, 'degree', e.target.value)} className="bg-black/30 border-white/10 h-9" />
+                                <Input placeholder="Field of Study" value={edu.field} onChange={e => updateEducation(edu.id, 'field', e.target.value)} className="bg-black/30 border-white/10 h-9" />
+                                <Input type="month" placeholder="Graduation" value={edu.graduationDate} onChange={e => updateEducation(edu.id, 'graduationDate', e.target.value)} className="bg-black/30 border-white/10 h-9" />
+                              </div>
+                              <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 hover:bg-destructive/20 hover:text-destructive" onClick={() => removeEducation(edu.id)}>
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button onClick={addEducation} variant="outline" size="sm" className="w-full border-dashed border-white/20 hover:bg-white/5">
+                            <Plus className="mr-2 h-4 w-4" /> Add Education
+                          </Button>
+                        </div>
+                      )}
+
+                      {section.id === 'skills' && (
+                        <div className="space-y-4 pt-4">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Add a skill..."
+                              value={newSkill}
+                              onChange={e => setNewSkill(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                              className="bg-black/30 border-white/10 h-9"
+                            />
+                            <Button onClick={addSkill} size="sm" className="bg-primary hover:bg-primary/90 h-9">Add</Button>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {resumeData.skills.map((skill) => (
+                              <div key={skill} className="flex items-center gap-1.5 rounded-full bg-primary/20 border border-primary/20 px-3 py-1">
+                                <span className="text-xs font-medium">{skill}</span>
+                                <button onClick={() => removeSkill(skill)} className="hover:text-destructive transition-colors">
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  ))}
-                  <Button onClick={addExperience} variant="outline" className="w-full border-dashed border-white/20 hover:bg-white/5 hover:border-primary/50 hover:text-primary">
-                    <Plus className="mr-2 h-4 w-4" /> Add Mission
-                  </Button>
-                </div>
-              )}
-
-              {activeTab === 'education' && (
-                <div className="space-y-6">
-                  {resumeData.education.map((edu) => (
-                    <div key={edu.id} className="group relative p-6 rounded-xl bg-white/5 border border-white/5 hover:border-primary/20 transition-colors">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <Input placeholder="Institution" value={edu.institution} onChange={e => updateEducation(edu.id, 'institution', e.target.value)} className="bg-transparent border-b border-0 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary placeholder:text-zinc-600 font-bold text-lg" />
-                        <Input placeholder="Degree" value={edu.degree} onChange={e => updateEducation(edu.id, 'degree', e.target.value)} className="bg-transparent border-b border-0 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary placeholder:text-zinc-600" />
-                        <Input placeholder="Field of Study" value={edu.field} onChange={e => updateEducation(edu.id, 'field', e.target.value)} className="bg-black/20 border-white/10" />
-                        <Input type="month" value={edu.graduationDate} onChange={e => updateEducation(edu.id, 'graduationDate', e.target.value)} className="bg-black/20 border-white/10" />
-                      </div>
-                      <Button size="icon" variant="ghost" className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 hover:bg-destructive/20 hover:text-destructive" onClick={() => removeEducation(edu.id)}><Trash2 className="h-4 w-4" /></Button>
-                    </div>
-                  ))}
-                  <Button onClick={addEducation} variant="outline" className="w-full border-dashed border-white/20 hover:bg-white/5 hover:border-primary/50 hover:text-primary">
-                    <Plus className="mr-2 h-4 w-4" /> Add Training
-                  </Button>
-                </div>
-              )}
-
-              {activeTab === 'skills' && (
-                <div className="space-y-6 p-6 rounded-xl bg-white/5 border border-white/10">
-                  <div className="flex gap-4">
-                    <Input
-                      placeholder="Add a skill or technology..."
-                      value={newSkill}
-                      onChange={e => setNewSkill(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                      className="bg-black/20 border-white/10 focus:border-primary/50"
-                    />
-                    <Button onClick={addSkill} className="bg-primary hover:bg-primary/90">Add</Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {resumeData.skills.map((skill) => (
-                      <div key={skill} className="flex items-center gap-2 rounded-full bg-primary/20 border border-primary/20 px-4 py-1.5 text-primary-foreground">
-                        <span className="text-sm font-medium">{skill}</span>
-                        <button onClick={() => removeSkill(skill)} className="hover:text-destructive transition-colors"><Trash2 className="h-3 w-3" /></button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </ScrollArea>
-      </div>
-
-      {/* Live Preview Panel - Desktop Right */}
-      <div className="hidden lg:flex w-[400px] flex-col gap-4">
-        <div className="flex-1 bg-zinc-900/50 rounded-3xl border border-white/10 overflow-hidden flex flex-col relative">
-          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-          <div className="p-3 border-b border-white/10 flex justify-between items-center bg-black/20">
-            <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Live Preview</span>
-            <Sparkles className="h-3 w-3 text-primary animate-pulse" />
-          </div>
-
-          <ScrollArea className="flex-1 bg-[#525659] p-4"> {/* Darker grey background for PDF viewer look */}
-            <div
-              ref={previewRef}
-              className="bg-white text-black min-h-[500px] shadow-2xl mx-auto p-8 text-[10pt] leading-relaxed origin-top transition-transform duration-200"
-              style={{ width: '100%' }}
-            >
-              {/* Simplistic Resume Template */}
-              <header className="border-b-2 border-gray-800 pb-4 mb-4">
-                <h1 className="text-3xl font-bold uppercase tracking-tight">{resumeData.personalInfo.fullName || 'YOUR NAME'}</h1>
-                <div className="text-sm mt-2 flex flex-wrap gap-3 text-gray-600">
-                  {[
-                    resumeData.personalInfo.email,
-                    resumeData.personalInfo.phone,
-                    resumeData.personalInfo.location,
-                    resumeData.personalInfo.linkedin
-                  ].filter(Boolean).map((item, i) => (
-                    <span key={i}>{item} • </span>
-                  ))}
-                </div>
-              </header>
-
-              {resumeData.summary && (
-                <section className="mb-4">
-                  <h2 className="text-sm font-bold uppercase border-b border-gray-300 mb-2 text-gray-800">Professional Profile</h2>
-                  <p className="text-gray-700">{resumeData.summary}</p>
-                </section>
-              )}
-
-              {resumeData.experiences.length > 0 && (
-                <section className="mb-4">
-                  <h2 className="text-sm font-bold uppercase border-b border-gray-300 mb-2 text-gray-800">Experience</h2>
-                  {resumeData.experiences.map(exp => (
-                    <div key={exp.id} className="mb-3">
-                      <div className="flex justify-between items-baseline">
-                        <h3 className="font-bold text-gray-900">{exp.position}</h3>
-                        <span className="text-xs text-gray-500 whitespace-nowrap">{exp.startDate} – {exp.endDate || 'Present'}</span>
-                      </div>
-                      <div className="text-sm font-semibold text-gray-700 mb-1">{exp.company}</div>
-                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{exp.description}</p>
-                    </div>
-                  ))}
-                </section>
-              )}
-
-              {resumeData.education.length > 0 && (
-                <section className="mb-4">
-                  <h2 className="text-sm font-bold uppercase border-b border-gray-300 mb-2 text-gray-800">Education</h2>
-                  {resumeData.education.map(edu => (
-                    <div key={edu.id} className="mb-2">
-                      <div className="flex justify-between">
-                        <h3 className="font-bold text-gray-900">{edu.institution}</h3>
-                        <span className="text-xs text-gray-500">{edu.graduationDate}</span>
-                      </div>
-                      <div className="text-sm text-gray-700">{edu.degree} {edu.field && `in ${edu.field}`}</div>
-                    </div>
-                  ))}
-                </section>
-              )}
-
-              {resumeData.skills.length > 0 && (
-                <section>
-                  <h2 className="text-sm font-bold uppercase border-b border-gray-300 mb-2 text-gray-800">Skills</h2>
-                  <div className="text-sm text-gray-700 leading-normal">
-                    {resumeData.skills.join(' • ')}
-                  </div>
-                </section>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </ScrollArea>
+          ))}
         </div>
       </div>
+
+      {/* Right Panel - Live Preview */}
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col bg-zinc-900/50 rounded-2xl border border-white/10 overflow-hidden lg:max-w-[50%]">
+        {/* Preview Header */}
+        <div className="flex items-center justify-between p-3 border-b border-white/10 bg-black/20 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+            <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider">Live Preview</span>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-7 text-xs hover:bg-white/10"
+            onClick={() => setShowFullPreview(true)}
+          >
+            <Maximize2 className="h-3 w-3 mr-1" /> Expand
+          </Button>
+        </div>
+
+        {/* A4 Preview Container */}
+        <div className="flex-1 min-h-0 overflow-auto bg-[#525659] p-4 flex items-start justify-center scrollbar-thin">
+          <div className="w-full max-w-[400px] shadow-2xl">
+            <ResumePreview />
+          </div>
+        </div>
+      </div>
+
+      {/* Full Preview Dialog */}
+      <Dialog open={showFullPreview} onOpenChange={setShowFullPreview}>
+        <DialogContent className="max-w-[min(95vw,900px)] h-[95vh] p-0 bg-[#525659] border-white/10 flex flex-col overflow-hidden">
+          <DialogHeader className="flex-shrink-0 p-4 border-b border-white/10 bg-black/40">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-white">Full Resume Preview</DialogTitle>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleDownloadPDF} disabled={isDownloading} className="bg-primary hover:bg-primary/90">
+                  <Download className="h-4 w-4 mr-2" /> Download PDF
+                </Button>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 overflow-auto p-4 md:p-6">
+            <div className="mx-auto shadow-2xl" style={{ maxWidth: '210mm' }}>
+              <ResumePreview forPdf />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

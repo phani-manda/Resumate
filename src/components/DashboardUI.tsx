@@ -21,8 +21,24 @@ import { CareerCoachChat } from "@/components/CareerCoachChat";
 import Link from "next/link";
 import { useUser, UserButton } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 
 type TabType = "home" | "dashboard" | "builder" | "optimizer" | "coach";
+
+function UserButtonWrapper() {
+  return (
+    <UserButton 
+      afterSignOutUrl="/"
+      appearance={{
+        elements: {
+          avatarBox: "w-10 h-10 border-2 border-orange-500 rounded-full",
+          userButtonPopoverCard: "bg-black border border-neutral-800",
+          userButtonPopoverActionButton: "text-white hover:bg-neutral-800",
+        },
+      }}
+    />
+  );
+}
 
 export function DashboardUI() {
   const [activeTab, setActiveTab] = useState<TabType>("home");
@@ -47,7 +63,6 @@ export function DashboardUI() {
     setActiveTab(tabId);
   };
 
-  // Show loading state while auth is loading
   if (!isLoaded) {
     return (
       <div className="flex h-screen items-center justify-center bg-black">
@@ -61,22 +76,21 @@ export function DashboardUI() {
 
   return (
     <div className="flex h-screen bg-black overflow-hidden">
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col min-w-0">
         {/* Top Navigation Bar */}
-        <header className="flex items-center justify-between px-8 py-6 border-b border-neutral-800/50">
-          {/* Left: Pill Navigation Tabs */}
-          <div className="flex gap-3">
+        <header className="flex-shrink-0 flex items-center justify-between px-4 md:px-8 py-4 md:py-6 border-b border-neutral-800/50 gap-4">
+          {/* Left: Navigation Tabs */}
+          <div className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`futuristic-pill ${
+                className={`futuristic-pill whitespace-nowrap flex-shrink-0 ${
                   activeTab === tab.id ? "futuristic-pill-active" : ""
                 }`}
               >
                 <tab.icon className="w-4 h-4 mr-2 inline-block" />
-                {tab.label}
+                <span className="hidden sm:inline">{tab.label}</span>
                 {tab.requiresAuth && !isSignedIn && (
                   <Lock className="w-3 h-3 ml-2 inline-block" />
                 )}
@@ -84,39 +98,30 @@ export function DashboardUI() {
             ))}
           </div>
 
-          {/* Right: Search Bar or Auth Buttons */}
-          <div className="flex items-center gap-4">
-            <div className="relative w-96">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+          {/* Right: Search & Auth */}
+          <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
+            <div className="relative w-48 md:w-72 lg:w-96 hidden sm:block">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-neutral-500" />
               <input
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-neutral-900/50 border border-neutral-800 rounded-full text-white placeholder:text-neutral-500 focus:outline-none focus:border-orange-500 transition-colors"
+                className="w-full pl-10 md:pl-12 pr-4 py-2.5 md:py-3 bg-neutral-900/50 border border-neutral-800 rounded-full text-white text-sm placeholder:text-neutral-500 focus:outline-none focus:border-orange-500 transition-colors"
               />
             </div>
             {isLoaded && (
               <>
                 {isSignedIn ? (
-                  <div className="flex items-center gap-3">
-                    <UserButton 
-                      afterSignOutUrl="/"
-                      appearance={{
-                        elements: {
-                          avatarBox: "w-10 h-10 border-2 border-orange-500 rounded-full",
-                          userButtonPopoverCard: "bg-black border border-neutral-800",
-                          userButtonPopoverActionButton: "text-white hover:bg-neutral-800",
-                        },
-                      }}
-                    />
-                  </div>
+                  <Suspense fallback={<div className="w-10 h-10 rounded-full bg-neutral-800 animate-pulse" />}>
+                    <UserButtonWrapper />
+                  </Suspense>
                 ) : (
-                  <div className="flex items-center gap-3">
-                    <Link href="/sign-in" className="px-6 py-2 rounded-full border border-orange-500 text-orange-500 hover:bg-orange-500/10 transition-colors">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <Link href="/sign-in" className="px-4 md:px-6 py-2 rounded-full border border-orange-500 text-orange-500 hover:bg-orange-500/10 transition-colors text-sm font-medium">
                       Sign In
                     </Link>
-                    <Link href="/sign-up" className="futuristic-cta whitespace-nowrap">
+                    <Link href="/sign-up" className="futuristic-cta whitespace-nowrap text-sm py-2 px-4 md:px-6">
                       Sign Up
                     </Link>
                   </div>
@@ -126,26 +131,26 @@ export function DashboardUI() {
           </div>
         </header>
 
-        {/* Content Area - Changes based on active tab */}
-        <div className="flex-1 overflow-auto">
+        {/* Content Area */}
+        <div className="flex-1 overflow-auto min-h-0">
           {activeTab === "home" && <HomeContent setActiveTab={handleTabChange} isSignedIn={isSignedIn} />}
           {activeTab === "dashboard" && (
-            <div className="p-8">
+            <div className="p-4 md:p-6 lg:p-8 h-full">
               {isSignedIn ? <StatsDashboard /> : <AuthRequiredMessage />}
             </div>
           )}
           {activeTab === "builder" && (
-            <div className="p-8">
+            <div className="p-4 md:p-6 lg:p-8 h-full">
               {isSignedIn ? <ResumeBuilder /> : <AuthRequiredMessage />}
             </div>
           )}
           {activeTab === "optimizer" && (
-            <div className="p-8">
+            <div className="p-4 md:p-6 lg:p-8 h-full">
               {isSignedIn ? <AIOptimizer /> : <AuthRequiredMessage />}
             </div>
           )}
           {activeTab === "coach" && (
-            <div className="p-8 h-full">
+            <div className="p-4 md:p-6 lg:p-8 h-full">
               {isSignedIn ? <CareerCoachChat /> : <AuthRequiredMessage />}
             </div>
           )}
@@ -158,9 +163,11 @@ export function DashboardUI() {
 function AuthRequiredMessage() {
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-8">
-      <Lock className="w-16 h-16 text-orange-500 mb-4" />
-      <h2 className="text-2xl font-bold text-white mb-2">Authentication Required</h2>
-      <p className="text-neutral-400 mb-6 max-w-md">
+      <div className="w-20 h-20 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-6">
+        <Lock className="w-10 h-10 text-orange-500" />
+      </div>
+      <h2 className="text-2xl font-bold text-white mb-3">Authentication Required</h2>
+      <p className="text-neutral-400 mb-8 max-w-md leading-relaxed">
         Please sign in to access this feature and unlock all premium capabilities.
       </p>
       <Link href="/sign-in" className="futuristic-cta">

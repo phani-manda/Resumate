@@ -1,0 +1,1618 @@
+================================================================================
+RESUMATE — PRODUCTION OPTIMIZATION: COMPLETE AGENT BUILD INSTRUCTIONS
+Project: Resumate v1.0.0 | Stack: Next.js 16 · React 19 · TypeScript · Groq AI · PostgreSQL
+Report: March 2026 | Scope: Full-Stack · UI/UX · Performance · Scalability · Accessibility
+================================================================================
+
+AGENT INSTRUCTIONS: Build every feature listed below. Nothing is optional. Implement
+all code patterns exactly as specified. Follow all naming conventions, file paths,
+and architectural decisions as written. Do not skip any section.
+
+================================================================================
+SECTION 1: EXECUTIVE SUMMARY & CRITICAL ISSUES
+================================================================================
+
+CURRENT STATE SCORECARD (all must reach TARGET):
+- UI Polish / Design System:    Current 65%  → Target 95%  | Gap: Needs token-based DS, motion system
+- Micro-interactions:           Current 30%  → Target 90%  | Gap: Almost no hover/focus/active states
+- Performance:                  Current 60%  → Target 95%  | Gap: Large components, no code splitting
+- Accessibility:                Current 50%  → Target 95%  | Gap: Missing ARIA, focus traps, WCAG
+- Scalability:                  Current 55%  → Target 90%  | Gap: No caching, rate limiting, queue
+- Error Handling & Edge Cases:  Current 60%  → Target 95%  | Gap: Partial — missing retry, offline UI
+- Mobile Experience:            Current 55%  → Target 90%  | Gap: Partially responsive, touch gaps
+- Backend Hardening:            Current 60%  → Target 95%  | Gap: No rate limits, no caching layer
+- Monitoring / Observability:   Current 20%  → Target 90%  | Gap: No error tracking, no metrics
+- Testing:                      Current 10%  → Target 80%  | Gap: No tests present
+
+CRITICAL ISSUES — FIX FIRST:
+[CRITICAL] No API rate limiting — Open to abuse, single user can exhaust Groq quota
+[CRITICAL] No error boundaries — One component crash kills entire page
+[HIGH]     Chat history lost on refresh — ChatMessage model exists but not wired to UI
+[HIGH]     42.9KB AIOptimizer component — Violates single-responsibility, causes re-render storms
+[HIGH]     28.5KB ResumeBuilder monolith — Split into section components for perf & maintainability
+[HIGH]     Missing ARIA labels — Screen readers cannot navigate the application
+[MEDIUM]   Dashboard uses mock data — Connect real analytics from DB, misleads users
+[MEDIUM]   No loading skeletons — Blank flashes destroy perceived performance
+
+
+================================================================================
+SECTION 2: DESIGN SYSTEM & VISUAL LANGUAGE
+================================================================================
+
+FILE: src/styles/tokens.css (or globals.css :root block)
+
+CSS CUSTOM PROPERTY TOKEN SYSTEM — implement exactly:
+
+:root {
+  /* — Brand — */
+  --color-primary: 262 83% 58%;        /* HSL purple-600 */
+  --color-primary-light: 263 70% 75%;  /* purple-400 */
+  --color-accent: 217 91% 60%;         /* blue-500 */
+
+  /* — Surfaces — */
+  --color-bg: 240 10% 4%;              /* zinc-950 */
+  --color-surface: 240 5% 9%;          /* zinc-900 */
+  --color-surface-2: 240 4% 16%;       /* zinc-800 */
+  --color-border: 240 4% 26%;          /* zinc-700 */
+
+  /* — Text — */
+  --color-text: 0 0% 98%;              /* zinc-50 */
+  --color-text-muted: 240 5% 65%;      /* zinc-400 */
+  --color-text-subtle: 240 4% 46%;     /* zinc-500 */
+
+  /* — Semantic — */
+  --color-success: 158 64% 52%;        /* emerald-500 */
+  --color-warning: 38 92% 50%;         /* amber-500 */
+  --color-error: 0 84% 60%;            /* red-500 */
+  --color-info: 199 89% 48%;           /* cyan-500 */
+
+  /* — Spacing — */
+  --space-xs: 4px;  --space-sm: 8px;  --space-md: 16px;
+  --space-lg: 24px; --space-xl: 32px; --space-2xl: 48px;
+
+  /* — Radius — */
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px; --radius-xl: 24px;
+
+  /* — Motion — */
+  --duration-fast: 100ms; --duration-base: 200ms;
+  --duration-slow: 350ms; --ease-out: cubic-bezier(0.16,1,0.3,1);
+}
+
+TYPOGRAPHY SCALE — implement as CSS vars and Tailwind config:
+--text-xs:   11px / weight 400 / line-height 16px → Badges, timestamps, labels
+--text-sm:   13px / weight 400 / line-height 20px → Body text, form hints
+--text-base: 15px / weight 400 / line-height 24px → Default body
+--text-lg:   17px / weight 600 / line-height 26px → Card titles
+--text-xl:   20px / weight 600 / line-height 28px → Section headings
+--text-2xl:  24px / weight 700 / line-height 32px → Page headings
+--text-3xl:  30px / weight 700 / line-height 38px → Hero headings
+--text-4xl:  36px / weight 800 / line-height 44px → Cover / marketing
+
+SHADOW & GLOW SYSTEM — add to tailwind.config or CSS:
+shadow-sm:     0 1px 2px rgba(0,0,0,0.4)               → Subtle card lift
+shadow-md:     0 4px 12px rgba(0,0,0,0.5)               → Elevated cards
+shadow-lg:     0 8px 32px rgba(0,0,0,0.6)               → Modals, dialogs
+shadow-glow-p: 0 0 24px -4px rgba(124,58,237,0.45)     → Purple CTA glow
+shadow-glow-b: 0 0 24px -4px rgba(37,99,235,0.45)      → Blue accent glow
+shadow-glow-e: 0 0 16px -4px rgba(16,185,129,0.4)      → Success states
+shadow-inner:  inset 0 1px 3px rgba(0,0,0,0.5)          → Input focus ring
+
+CARD COMPONENT PATTERN (apply universally):
+className: bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-colors
+
+BUTTON PRIMARY PATTERN:
+className: bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500
+           shadow-[0_0_20px_-5px_rgba(124,58,237,0.5)]
+
+INPUT PATTERN:
+className: bg-black/40 border-white/20 text-white placeholder:text-zinc-500
+           focus:border-primary focus:ring-1 focus:ring-primary
+
+SECTION HEADER PATTERN:
+flex items-center gap-2 with Icon className="h-4 w-4 text-{color}-400" and Text className="text-sm font-medium text-zinc-300"
+
+
+================================================================================
+SECTION 3: MICRO-INTERACTIONS & ANIMATION SYSTEM
+================================================================================
+
+FILE: src/lib/animation.ts — create this file:
+
+export const duration = {
+  instant:   50,   // Tooltips appear
+  fast:      100,  // Checkbox ticks, toggle flips
+  micro:     150,  // Hover color shifts
+  base:      200,  // Most transitions
+  enter:     300,  // Modals, sheets opening
+  emphasize: 450,  // Score number countup
+  slow:      600,  // Page transitions
+} as const;
+
+export const ease = {
+  out:    [0.16, 1, 0.3, 1],               // Snappy decelerate (spring-like)
+  in:     [0.7, 0, 1, 0.6],               // Aggressive accelerate (exits)
+  inOut:  [0.4, 0, 0.2, 1],              // Smooth both ways
+  spring: { type: 'spring', stiffness: 300, damping: 24 },
+  bounce: { type: 'spring', stiffness: 400, damping: 10 },
+} as const;
+
+BUTTON MICRO-INTERACTION STATES (implement all 7):
+State: Default  → Gradient bg, subtle glow shadow — baseline presence
+State: Hover    → Brightness +10%, shadow expands +4px — 150ms ease-out translate-y(-1px)
+State: Focus    → 2px solid ring offset 2px primary color — 100ms — keyboard visible
+State: Active   → Brightness -5%, translate-y(+1px), scale 0.98 — 100ms — pressed feel
+State: Loading  → Spinner replaces icon, text dims to 60% — 200ms — prevents double-click
+State: Success  → Green checkmark morphs in, text changes — 300ms — confirms action
+State: Disabled → opacity-40, cursor-not-allowed, no hover effects
+
+INPUT FIELD MICRO-INTERACTIONS (implement all 8):
+1. Focus ring animation: Ring scales from 0 to full width in 150ms with ease-out
+2. Label float: Placeholder shrinks and floats above on focus (60% scale, 0.8em)
+3. Character count: Fades in when within 20 chars of limit, turns amber at 90%, red at 100%
+4. Validation feedback: Border color shifts green/red with icon; shakes on error (4px keyframe shake animation)
+5. Password strength meter: Animated bar fills with color coding: red → amber → green
+6. Autofill styling: Override browser yellow — background-color: transparent !important in CSS
+7. Clear button: X icon fades in when field has value; clears with scale-out animation
+8. Paste detection: Brief highlight flash (200ms yellow bg) on paste to confirm paste succeeded
+
+FILE: src/components/PageTransition.tsx — create this file:
+
+import { AnimatePresence, motion } from 'framer-motion';
+
+const variants = {
+  hidden:  { opacity: 0, y: 12, filter: 'blur(4px)' },
+  visible: { opacity: 1, y: 0,  filter: 'blur(0px)' },
+  exit:    { opacity: 0, y: -8, filter: 'blur(2px)' },
+};
+
+export function PageTransition({ children }: { children: React.ReactNode }) {
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        variants={variants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+STAGGER LIST ANIMATIONS — apply to all lists (resume items, suggestions, keywords):
+
+const container = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
+};
+const item = {
+  hidden:  { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } },
+};
+// Usage: <motion.ul variants={container}> <motion.li variants={item}>
+
+ATS SCORE COUNT-UP ANIMATION — FILE: src/hooks/useCountUp.ts:
+
+export function useCountUp(target: number, duration = 1200) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let start = 0;
+    const step = 16;
+    const total = Math.ceil(duration / step);
+    let current = 0;
+    const timer = setInterval(() => {
+      current++;
+      const progress = current / total;
+      const eased = 1 - (1 - progress) ** 2;  // Ease-out quad
+      setCount(Math.round(eased * target));
+      if (current >= total) clearInterval(timer);
+    }, step);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+  return count;
+}
+
+
+================================================================================
+SECTION 4: COMPONENT-LEVEL UI/UX OPTIMIZATIONS
+================================================================================
+
+CARD COMPONENTS — add to every card:
+1. Hover lift: translateY(-2px) + shadow expansion — 150ms ease-out
+2. Gradient border on hover: Border transitions to gradient via pseudo-element overlay
+3. Content shimmer loading: Skeleton with animated gradient sweep (not a spinner)
+4. Collapse animation: height auto with FLIP animation technique via ResizeObserver
+5. Focus-within highlight: Card gets subtle ring when any child is focused
+6. Selection state: Checkmark + border color + scale(1.01) when selected
+
+NAVIGATION & SIDEBAR — implement all:
+1. Active state indicator: Animated left bar slides between items with no jump (layout animation)
+2. Icon animation on hover: Icons scale to 1.1 + color shift in 150ms
+3. Badge pulse animation: Notification badges pulse with ring animation
+4. Tooltip on collapse: Icon-only mode shows tooltip on hover with 300ms delay
+5. Breadcrumb transitions: Items animate in from right when navigating deeper
+6. Mobile bottom nav bar: Thumb-friendly bottom navigation for mobile viewports below 768px
+
+MODAL & DIALOG SYSTEM — implement all patterns:
+1. Backdrop blur: backdrop-filter blur(8px) on overlay — depth perception
+2. Scale-in enter: scale(0.92) → scale(1) + fade, 250ms — natural feeling
+3. Focus trap: useFocusTrap hook on mount — accessibility requirement
+4. Escape close: keydown event listener, announce to screen reader
+5. Close confirmation: Prompt user if unsaved changes exist in form — data protection
+6. Scroll lock: overflow:hidden on body while modal is open — no background scroll
+7. Stacked modals: z-index management system (1000, 1010, 1020 etc) — edge case support
+
+TOAST & NOTIFICATION SYSTEM — update Sonner configuration:
+
+import { Toaster } from 'sonner';
+
+// Place in root layout:
+<Toaster
+  position="bottom-right"
+  toastOptions={{
+    style: {
+      background: 'hsl(var(--color-surface-2))',
+      border: '1px solid hsl(var(--color-border))',
+      color: 'hsl(var(--color-text))',
+    },
+    duration: 4000,
+  }}
+  icons={{
+    success: <CheckCircle className="text-emerald-400" size={16} />,
+    error:   <XCircle    className="text-red-400"     size={16} />,
+    loading: <Loader2    className="text-purple-400 animate-spin" size={16} />,
+  }}
+/>
+
+EMPTY STATE COMPONENTS — create for every data view:
+FILE: src/components/shared/EmptyState.tsx
+
+Views to implement:
+1. Resume list    → Icon: FileText + sparkle | Headline: "Your career story starts here"   | CTA: "Create First Resume"
+2. Optimizer      → Icon: Target + bolt       | Headline: "No resume analyzed yet"          | CTA: "Upload & Analyze"
+3. Coach history  → Icon: MessageCircle       | Headline: "Ask your first question"          | CTA: "Start Conversation"
+4. Dashboard      → Icon: BarChart3           | Headline: "No data yet — start building!"   | CTA: "Go to Builder"
+5. Search results → Icon: SearchX             | Headline: "No matches found"                 | CTA: "Clear Filters"
+
+Each empty state must include: illustration/icon, clear headline, supporting sentence, primary CTA button.
+
+
+================================================================================
+SECTION 5: RESUME BUILDER — DEEP DIVE
+================================================================================
+
+COMPONENT ARCHITECTURE REFACTOR — split ResumeBuilder.tsx (28.5KB) into:
+
+components/builder/
+├── ResumeBuilder.tsx              ← Orchestrator only, target ~4KB
+├── sections/
+│   ├── PersonalInfoSection.tsx
+│   ├── SummarySection.tsx
+│   ├── ExperienceSection.tsx
+│   ├── EducationSection.tsx
+│   ├── ProjectsSection.tsx
+│   └── SkillsSection.tsx
+├── shared/
+│   ├── SectionWrapper.tsx         ← Collapsible container with animations
+│   ├── AddItemButton.tsx
+│   ├── DraggableItem.tsx
+│   └── AIImproveButton.tsx        ← Per-section AI polish button
+├── preview/
+│   ├── ResumePreview.tsx
+│   └── TemplateRenderer.tsx
+└── hooks/
+    ├── useAutoSave.ts
+    ├── useResumeForm.ts
+    └── useResumeExport.ts
+
+AUTO-SAVE WITH DEBOUNCE & CONFLICT RESOLUTION — FILE: src/hooks/useAutoSave.ts:
+
+export function useAutoSave(resumeId: string, data: ResumeData) {
+  const [status, setStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  const pendingRef = useRef<NodeJS.Timeout>();
+  const lastSavedRef = useRef(JSON.stringify(data));
+
+  useEffect(() => {
+    const serialized = JSON.stringify(data);
+    if (serialized === lastSavedRef.current) return; // No change
+
+    setStatus('saving');
+    clearTimeout(pendingRef.current);
+    pendingRef.current = setTimeout(async () => {
+      try {
+        await api.put(`/resumes/${resumeId}`, data);
+        lastSavedRef.current = serialized;
+        setStatus('saved');
+      } catch {
+        setStatus('error'); // Show retry button in UI
+      }
+    }, 1200); // 1.2s debounce
+  }, [data, resumeId]);
+
+  return status;
+}
+
+// Display status indicator in builder header:
+// "saved" → green dot + "Saved"
+// "saving" → spinning dot + "Saving..."
+// "error" → red dot + "Save failed" + Retry button
+
+DRAG-AND-DROP SECTION REORDERING — implement all:
+1. Install @dnd-kit/core and @dnd-kit/sortable packages
+2. DragHandle visible on hover only — reduce visual noise when not dragging
+3. Ghost placeholder on drag — shows target position clearly
+4. Persist sectionOrder to DB — add sectionOrder: string[] field to Resume prisma model
+5. Keyboard drag support: Space to grab, arrow keys to move, Space to drop (WCAG compliant)
+6. Auto-scroll on near edge: When dragging near top/bottom of scroll container, auto-scroll
+
+LIVE PREVIEW SPLIT-PANE — implement all:
+1. Resizable split via @radix-ui/react-resizable-panels — drag divider to adjust builder/preview ratio
+2. Preview updates debounced at 300ms — avoids re-render on every keystroke
+3. Preview uses SAME CSS as PDF export — WYSIWYG accuracy is critical for user trust
+4. Zoom control on preview: 50%, 75%, 100%, 125% options — useful for long resumes
+5. Highlight changed sections: Yellow highlight fades out after 800ms on any section update
+6. Print-accurate font rendering: Use @page CSS + exact paper dimensions in preview
+
+Mobile layout for builder:
+- Mobile (< 768px): Single panel, toggle preview via FAB button fixed at bottom
+- Tablet (768px–1023px): Side-by-side, 55/45 split
+- Desktop (>= 1024px): Resizable panels via @radix-ui/react-resizable-panels
+
+AI SECTION IMPROVEMENT BUTTON — add "Improve with AI" to each SectionWrapper:
+
+FILE: src/app/api/ai/improve-section/route.ts (create this endpoint)
+
+// Per-section AI polish
+async function improveSection(sectionType: string, content: string) {
+  setImproving(true);
+  const response = await fetch('/api/ai/improve-section', {
+    method: 'POST',
+    body: JSON.stringify({ sectionType, content, tone: userPreference }),
+  });
+  const { improved, diff } = await response.json();
+  // Show before/after modal with Accept and Reject buttons
+  setDiff({ original: content, improved, visible: true });
+  setImproving(false);
+}
+
+// tone options: 'formal' | 'concise' | 'detailed'
+// Before/after diff view: use react-diff-viewer or simple side-by-side display
+
+
+================================================================================
+SECTION 6: AI OPTIMIZER — DEEP DIVE
+================================================================================
+
+COMPONENT SPLIT — split AIOptimizer.tsx (42.9KB) into:
+
+components/optimizer/
+├── AIOptimizer.tsx            ← Orchestrator only, target ~5KB
+├── JobDescriptionInput.tsx    ← Textarea + paste detection + character count
+├── ResumeSelector.tsx         ← Dropdown to pick saved resume
+├── AnalysisProgress.tsx       ← Streaming analysis multi-step progress UI
+├── ScoreCard.tsx              ← ATS score + radial gauge chart
+├── KeywordsPanel.tsx          ← Missing vs matched keyword chips
+├── SuggestionsPanel.tsx       ← Actionable suggestions list with stagger animation
+├── ComparisonView.tsx         ← Side-by-side diff view original vs improved
+└── ReportHistory.tsx          ← Past optimization reports list
+
+ATS SCORE VISUALIZATION — implement all:
+1. Radial gauge chart: SVG-based circular gauge with animated fill — more impactful than number alone
+2. Score color zones: 0-49 red, 50-74 amber, 75-89 blue, 90-100 green — smooth color transitions
+3. Comparison to median: Show "Better than X% of applicants" text below score for context
+4. Score breakdown radar chart: Recharts RadarChart showing sub-scores: Keywords, Format, Length, Readability, Impact
+5. Score history timeline: Line chart of score improvements across multiple optimizer runs
+6. Score sharing button: Generate shareable PNG card of score using canvas API
+
+KEYWORD CHIP SYSTEM — FILE: src/components/optimizer/KeywordsPanel.tsx:
+
+function KeywordChip({ keyword, status, onClick }) {
+  const colors = {
+    matched: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300',
+    missing: 'bg-red-500/15    border-red-500/40    text-red-300',
+    partial: 'bg-amber-500/15  border-amber-500/40  text-amber-300',
+  };
+  return (
+    <motion.button
+      className={`px-2 py-1 rounded-full border text-xs font-medium ${colors[status]}`}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={() => onClick(keyword)} // Click to add keyword directly to resume
+    >
+      {status === 'matched' ? '✓' : '+'} {keyword}
+    </motion.button>
+  );
+}
+
+STREAMING ANALYSIS PROGRESS — show multi-step UI instead of plain spinner:
+FILE: src/components/optimizer/AnalysisProgress.tsx
+
+Steps to display sequentially with animated checkmarks:
+Step 1: "Reading your resume..."           → ~300ms
+Step 2: "Analyzing job requirements..."    → ~600ms
+Step 3: "Matching keywords..."             → ~800ms
+Step 4: "Calculating ATS compatibility..." → ~400ms
+Step 5: "Generating suggestions..."        → ~1200ms
+Step 6: "Finalizing report..."             → ~200ms
+
+Each step: shows spinner while active, green checkmark when complete, grayed out when pending.
+
+
+================================================================================
+SECTION 7: CAREER COACH CHAT — DEEP DIVE
+================================================================================
+
+CHAT PERSISTENCE ARCHITECTURE — wire ChatMessage model to UI:
+
+FILE: src/app/api/ai/chat/history/route.ts (create this endpoint):
+
+export async function GET(req: Request) {
+  const { userId } = auth();
+  const messages = await prisma.chatMessage.findMany({
+    where: { clerkUserId: userId },
+    orderBy: { timestamp: 'asc' },
+    take: 100, // Last 100 messages
+  });
+  return Response.json(messages);
+}
+
+Chat message saving strategy:
+- Save user message to DB BEFORE streaming response begins
+- Save assistant message to DB AFTER stream completes (collect full streamed text)
+- Add sessionId: String field to ChatMessage prisma model
+- Create new session after 30 minutes of inactivity
+
+Load history on component mount via useEffect → fetch /api/ai/chat/history
+
+CHAT UX ENHANCEMENTS — implement all 10:
+1. Typing indicator: 3-dot bounce animation while AI generates — hide immediately on first token received
+2. Message reactions: Thumbs up/down per message for quality feedback data collection
+3. Code block rendering: Detect markdown code blocks in AI response, render with syntax highlighting (use react-syntax-highlighter or shiki)
+4. Copy message button: Appears on hover of any message bubble, copies to clipboard with toast confirmation
+5. Regenerate last response: Re-run last user prompt with same context, show diff from previous response
+6. Message search: Cmd+F triggers search overlay, highlights matching messages in conversation
+7. Context awareness: Auto-inject active resume data as system context: "Here is the user's current resume: [resume JSON]"
+8. Suggested follow-ups: After each AI response, show 2-3 contextual follow-up question chips below
+9. Voice input: Web Speech API (window.SpeechRecognition) for hands-free input — progressive enhancement, show mic icon in input
+10. Export conversation: Download full chat as PDF or markdown file for offline reference
+
+MESSAGE BUBBLE DESIGN — FILE: src/components/CareerCoachChat/MessageBubble.tsx:
+
+function MessageBubble({ role, content, timestamp }) {
+  const isUser = role === 'user';
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className={`flex gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
+    >
+      <Avatar className="w-8 h-8 shrink-0">
+        {isUser ? <UserIcon size={16} /> : <BotIcon size={16} />}
+      </Avatar>
+      <div className={`
+        max-w-[72%] px-4 py-3 rounded-2xl text-sm leading-relaxed
+        ${isUser
+          ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-tr-sm'
+          : 'bg-white/8 border border-white/10 text-zinc-200 rounded-tl-sm'
+        }
+      `}>
+        <ReactMarkdown>{content}</ReactMarkdown>
+        <span className="text-[10px] opacity-50 mt-1 block">{formatTime(timestamp)}</span>
+      </div>
+    </motion.div>
+  );
+}
+
+Install react-markdown for markdown rendering in chat messages.
+
+
+================================================================================
+SECTION 8: ANALYTICS DASHBOARD — DEEP DIVE
+================================================================================
+
+REAL DATA ARCHITECTURE — add to prisma/schema.prisma:
+
+model ResumeView {
+  id        String   @id @default(cuid())
+  resumeId  String
+  viewerIp  String   // SHA-256 hashed for privacy
+  userAgent String?
+  createdAt DateTime @default(now())
+  @@index([resumeId])
+}
+
+model UserActivity {
+  id          String   @id @default(cuid())
+  clerkUserId String
+  action      String   // 'resume_created' | 'optimized' | 'chat' | 'exported' | 'resume_viewed'
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  @@index([clerkUserId, createdAt])
+}
+
+DASHBOARD METRICS TO IMPLEMENT (replace all mock data):
+1. ATS score over time          → Source: OptimizationReport.createdAt + atsScore       → Chart: Line chart
+2. Resume completion %          → Source: Count filled fields / total fields             → Chart: Gauge / donut
+3. Optimization runs count      → Source: COUNT(OptimizationReport) for user            → Chart: Stat card
+4. Most common missing keywords → Source: Aggregate keywords.missing across all reports  → Chart: Horizontal bar chart
+5. Chat sessions per week       → Source: GROUP BY week(timestamp) from ChatMessage     → Chart: Bar chart
+6. Downloads count              → Source: UserActivity where action='exported'           → Chart: Stat card
+7. Score improvement delta      → Source: first vs latest OptimizationReport.atsScore   → Chart: Delta badge (+N points)
+8. Skills distribution          → Source: Aggregate resume.skills array                  → Chart: Bubble chart or word cloud
+
+FILE: src/app/api/dashboard/stats/route.ts (create this endpoint):
+Returns all real computed metrics for the authenticated user.
+
+BENTO GRID LAYOUT — implement CSS grid:
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+.bento-card-lg  { grid-column: span 8; grid-row: span 2; }  /* Main chart */
+.bento-card-md  { grid-column: span 4; }                    /* Secondary chart */
+.bento-card-sm  { grid-column: span 3; }                    /* Stat cards */
+.bento-card-xl  { grid-column: span 12; }                   /* Full width */
+
+@media (max-width: 768px) {
+  .bento-grid { grid-template-columns: 1fr; }
+  [class*='bento-card'] { grid-column: span 1; grid-row: span 1; }
+}
+
+
+================================================================================
+SECTION 9: LANDING PAGE & ONBOARDING
+================================================================================
+
+LANDING PAGE SECTIONS — implement in order:
+1. Hero Section:        Bold headline, animated ATS score counter, dual CTA (Start Free / Watch Demo)
+2. Social Proof Strip:  Logos of companies users got hired at, animated marquee/ticker
+3. Feature Showcase:    Animated tabs cycling through Builder / Optimizer / Coach features
+4. ATS Score Demo:      Interactive live demo — user pastes job desc, sees simulated ATS score
+5. Testimonials:        3-column grid with avatar, quote, company name, score improvement stat
+6. Pricing Section:     Free vs Pro comparison table with feature highlights and toggle
+7. FAQ Accordion:       Common questions with smooth expand/collapse animation using Radix Accordion
+8. Footer:              Links, social media, newsletter signup form, privacy/terms links
+
+ONBOARDING FLOW — implement multi-step flow for new users:
+Step 1: Welcome splash       → Brand impression, set tone                  → Cannot skip
+Step 2: Choose your goal     → Job seeker / Career change / Promotion      → Can skip
+Step 3: Upload or build      → Existing resume or start fresh              → Cannot skip
+Step 4: Quick profile setup  → Name, target role, location                 → Can skip
+Step 5: First optimization   → Immediate ATS value delivery                → Can skip
+Step 6: Explore coach        → Introduce chat feature with sample message  → Can skip
+Step 7: Dashboard tour       → Tooltips on key elements via Shepherd.js    → Can skip
+
+PROGRESS INDICATOR — FILE: src/components/onboarding/OnboardingProgress.tsx:
+
+function OnboardingProgress({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
+  return (
+    <div className="flex gap-2 items-center">
+      {Array.from({ length: totalSteps }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="h-1 rounded-full bg-white/20"
+          animate={{
+            width:           i < currentStep ? '32px' : '8px',
+            backgroundColor: i < currentStep ? '#7C3AED' : 'rgba(255,255,255,0.2)',
+          }}
+          transition={{ duration: 0.3 }}
+        />
+      ))}
+    </div>
+  );
+}
+
+
+================================================================================
+SECTION 10: PERFORMANCE OPTIMIZATION
+================================================================================
+
+TARGET METRICS: LCP < 2.5s, FID < 100ms, CLS < 0.1
+
+CODE SPLITTING — apply to all heavy components:
+
+const AIOptimizer    = dynamic(() => import('@/components/AIOptimizer'),    { loading: () => <OptimizerSkeleton /> });
+const ResumeBuilder  = dynamic(() => import('@/components/ResumeBuilder'),  { loading: () => <BuilderSkeleton   /> });
+const StatsDashboard = dynamic(() => import('@/components/StatsDashboard'), { loading: () => <DashboardSkeleton /> });
+const Recharts       = dynamic(() => import('recharts'),                    { ssr: false });
+
+Rules:
+- Each page loads only what it needs — target ~60% initial bundle reduction
+- Use CSS animations for simple cases, Framer Motion only for complex ones
+- Each lazy section has a matching skeleton loader component
+
+DATA FETCHING WITH SWR — FILE: src/hooks/useResumes.ts:
+
+import useSWR from 'swr';
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+
+export function useResumes() {
+  const { data, error, isLoading, mutate } = useSWR('/api/resumes', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    dedupingInterval: 5000,
+    onError: (err) => console.error('Resume fetch failed:', err),
+  });
+  return { resumes: data ?? [], error, isLoading, mutate };
+}
+
+// Optimistic updates on save:
+mutate(updatedResumes, { optimisticData: updatedResumes, rollbackOnError: true });
+
+Install swr package. Create similar hooks for: useOptimizationReports, useDashboardStats, useChatHistory.
+
+BUNDLE SIZE TARGETS:
+Initial JS:      Current ~280KB → Target < 120KB  (code split, tree-shake)
+First Paint CSS: Current ~45KB  → Target < 20KB   (purge unused Tailwind classes)
+Framer Motion:   Current ~35KB  → Target ~35KB    (lazy load, reuse bundled instance)
+Recharts:        Current ~60KB  → Target 0 initial (dynamic import on demand)
+shadcn/ui:       Current ~80KB  → Target < 40KB   (import only used components)
+
+IMAGE & ASSET OPTIMIZATION:
+1. Use next/image for all images — automatic WebP conversion, lazy loading, blur placeholder
+2. SVG icons as React components — no network request, tree-shakable, animatable
+3. Preload critical fonts: add link rel=preload as=font for Inter font in document head
+4. Resource hints: add link rel=preconnect for api.groq.com in document head
+5. Static asset caching: Cache-Control: public, max-age=31536000, immutable for /public/* assets
+6. CSS containment: contain: layout paint for virtualized lists
+
+SKELETON LOADING COMPONENTS — create for all:
+FILE: src/components/skeletons/BuilderSkeleton.tsx
+FILE: src/components/skeletons/OptimizerSkeleton.tsx
+FILE: src/components/skeletons/DashboardSkeleton.tsx
+FILE: src/components/skeletons/ResumeListSkeleton.tsx
+FILE: src/components/skeletons/ChatSkeleton.tsx
+
+Each skeleton uses animated gradient sweep:
+className: animate-pulse bg-gradient-to-r from-white/5 via-white/10 to-white/5 bg-[length:200%_100%]
+animation: shimmer 1.5s infinite — keyframe: 0% { background-position: 200% 0 } 100% { background-position: -200% 0 }
+
+
+================================================================================
+SECTION 11: SCALABILITY ARCHITECTURE
+================================================================================
+
+REDIS CACHING — FILE: src/lib/cache.ts (install @upstash/redis):
+
+import { Redis } from '@upstash/redis';
+const redis = Redis.fromEnv();
+
+const OPTIMIZE_TTL = 3600; // 1 hour cache for optimization results
+
+export function optimizationCacheKey(resumeHash: string, jdHash: string) {
+  return `optimize:${resumeHash}:${jdHash}`;
+}
+
+export async function getCachedOptimization(key: string) {
+  return redis.get(key);
+}
+
+export async function cacheOptimization(key: string, result: any) {
+  return redis.setex(key, OPTIMIZE_TTL, JSON.stringify(result));
+}
+
+// Resume list cache — TTL 30s, invalidate on any resume mutation
+export function resumeListKey(userId: string) {
+  return `resumes:${userId}`;
+}
+
+Add to env: UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
+
+RATE LIMITING — update src/middleware.ts (install @upstash/ratelimit):
+
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+const redis = Redis.fromEnv();
+
+export const ratelimits = {
+  chat:     new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(10, '1 m') }),
+  optimize: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5,  '1 m') }),
+  upload:   new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(10, '1 h') }),
+};
+
+// Apply in each API route:
+const { success, limit, remaining, reset } = await ratelimits.chat.limit(userId);
+if (!success) {
+  return Response.json(
+    { error: 'Rate limit exceeded', retryAfter: reset },
+    { status: 429, headers: { 'Retry-After': String(reset) } }
+  );
+}
+
+// UI must handle 429 response gracefully — show countdown timer to user
+
+DATABASE CONNECTION POOLING — update src/lib/db.ts:
+
+import { PrismaClient } from '@prisma/client';
+
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error'] : ['error'],
+  datasources: {
+    db: { url: process.env.DATABASE_URL + '?connection_limit=10&pool_timeout=20' },
+  },
+});
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
+// Use Neon with PgBouncer for serverless:
+// DATABASE_URL=postgresql://...@ep-xxx.pooler.neon.tech:5432/resumate?pgbouncer=true
+
+BACKGROUND JOB QUEUE — for PDF generation (install inngest):
+1. Use Inngest or Vercel Background Functions for CPU-intensive PDF generation
+2. Client polls /api/jobs/[id]/status via SSE while PDF generates in background
+3. Store download link as temporary signed URL from S3 or Cloudflare R2, expires after 1 hour
+4. Inngest provides built-in job monitoring dashboard at /api/inngest
+
+
+================================================================================
+SECTION 12: BACKEND & API HARDENING
+================================================================================
+
+ZOD VALIDATION — add to every API route:
+
+// FILE: src/lib/schemas.ts — define all schemas here
+
+const PersonalInfoSchema = z.object({
+  fullName:  z.string().min(1).max(100).trim(),
+  email:     z.string().email().max(200),
+  phone:     z.string().regex(/^[+\d\s()-]{7,20}$/).optional(),
+  location:  z.string().max(100).optional(),
+  linkedin:  z.string().url().optional().or(z.literal('')),
+  portfolio: z.string().url().optional().or(z.literal('')),
+});
+
+const ExperienceSchema = z.object({
+  id:          z.string(),
+  company:     z.string().min(1).max(200),
+  position:    z.string().min(1).max(200),
+  startDate:   z.string().regex(/^\d{4}-\d{2}$/),
+  endDate:     z.string(),
+  description: z.string().max(3000),
+});
+
+const CreateResumeSchema = z.object({
+  personalInfo: PersonalInfoSchema,
+  summary:      z.string().max(2000).optional(),
+  experiences:  z.array(ExperienceSchema).max(20),
+  education:    z.array(EducationSchema).max(10),
+  projects:     z.array(ProjectSchema).max(20).optional(),
+  skills:       z.array(z.string().max(50)).max(100),
+});
+
+// In every API route:
+const parsed = CreateResumeSchema.safeParse(await req.json());
+if (!parsed.success) {
+  return Response.json({ errors: parsed.error.flatten() }, { status: 400 });
+}
+// Use parsed.data from here, never raw req.json()
+
+ERROR HANDLING MIDDLEWARE — FILE: src/lib/api-handler.ts:
+
+import * as Sentry from '@sentry/nextjs';
+
+export function withErrorHandling(handler: RouteHandler) {
+  return async (req: Request, ctx: RouteContext) => {
+    try {
+      return await handler(req, ctx);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        if (err.code === 'P2002') return errorResponse('Duplicate entry', 409);
+        if (err.code === 'P2025') return errorResponse('Not found', 404);
+      }
+      if (err instanceof z.ZodError) {
+        return errorResponse('Validation failed', 400, err.flatten());
+      }
+      Sentry.captureException(err);
+      return errorResponse('Internal server error', 500);
+    }
+  };
+}
+
+function errorResponse(message: string, status: number, details?: any) {
+  return Response.json({ error: message, ...(details && { details }) }, { status });
+}
+
+// Wrap all routes: export const POST = withErrorHandling(async (req, ctx) => { ... })
+
+SECURITY HEADERS — update next.config.js:
+
+const securityHeaders = [
+  { key: 'X-DNS-Prefetch-Control',            value: 'on' },
+  { key: 'Strict-Transport-Security',         value: 'max-age=63072000; includeSubDomains; preload' },
+  { key: 'X-Frame-Options',                   value: 'SAMEORIGIN' },
+  { key: 'X-Content-Type-Options',            value: 'nosniff' },
+  { key: 'Referrer-Policy',                   value: 'origin-when-cross-origin' },
+  { key: 'Permissions-Policy',                value: 'camera=(), microphone=(self), geolocation=()' },
+  {
+    key: 'Content-Security-Policy',
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' *.clerk.accounts.dev",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' blob: data: *.clerk.com",
+      "connect-src 'self' *.clerk.accounts.dev api.groq.com",
+      "font-src 'self'",
+    ].join('; '),
+  },
+];
+
+module.exports = {
+  async headers() {
+    return [{ source: '/(.*)', headers: securityHeaders }];
+  },
+};
+
+
+================================================================================
+SECTION 13: DATABASE OPTIMIZATION
+================================================================================
+
+PRISMA SCHEMA ADDITIONS — add to prisma/schema.prisma:
+
+// Add to Resume model:
+model Resume {
+  // ... existing fields ...
+  sectionOrder  String[]  // Persist drag-and-drop section order
+  templateId    String?   // Support multiple resume templates
+  isArchived    Boolean   @default(false)  // Soft delete
+  targetRole    String?   // Feed into AI context
+  // resumeId FK not needed — keep as is
+}
+
+// Add to OptimizationReport model:
+model OptimizationReport {
+  // ... existing fields ...
+  resumeId String?  // @relation(fields: [resumeId], references: [id]) — link to resume
+}
+
+// Add to ChatMessage model:
+model ChatMessage {
+  // ... existing fields ...
+  sessionId String?  // Group messages into sessions
+  reaction  String?  // 'thumbsUp' | 'thumbsDown' — for quality feedback
+}
+
+// New models:
+model ResumeVersion {
+  id        String   @id @default(cuid())
+  resumeId  String
+  snapshot  Json     // Full resume data at snapshot time
+  label     String?  // Optional user label
+  createdAt DateTime @default(now())
+  @@index([resumeId, createdAt])
+}
+
+model ResumeView {
+  id        String   @id @default(cuid())
+  resumeId  String
+  viewerIp  String   // SHA-256 hashed for privacy
+  userAgent String?
+  createdAt DateTime @default(now())
+  @@index([resumeId])
+}
+
+model UserActivity {
+  id          String   @id @default(cuid())
+  clerkUserId String
+  action      String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  @@index([clerkUserId, createdAt])
+}
+
+DATABASE INDEXES — add to schema or run as migration:
+
+@@index([clerkUserId, createdAt])  // Add to OptimizationReport
+@@index([clerkUserId, updatedAt])  // Add to Resume (for list + sort)
+@@unique([clerkUserId, title])     // Prevent duplicate resume names per user
+
+Run: npx prisma migrate dev --name add_production_fields
+
+
+================================================================================
+SECTION 14: AI INTEGRATION — PRODUCTION PATTERNS
+================================================================================
+
+FALLBACK & RETRY — FILE: src/lib/ai-client.ts:
+
+async function callGroqWithRetry(prompt: string, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const result = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 1500,
+        temperature: 0.1, // Low temperature for structured/deterministic outputs
+      });
+      return result;
+    } catch (err) {
+      if (attempt === maxRetries - 1) throw err;
+      // Exponential backoff: 500ms, 1000ms, 2000ms
+      await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt)));
+    }
+  }
+}
+
+// Fallback provider chain: Groq → OpenAI → Anthropic
+export async function getAIResponse(prompt: string) {
+  try {
+    return await callGroqWithRetry(prompt);
+  } catch (groqErr) {
+    console.error('Groq failed, falling back to OpenAI:', groqErr);
+    try {
+      return await callOpenAI(prompt); // Implement OpenAI fallback
+    } catch (openaiErr) {
+      throw new Error('All AI providers failed');
+    }
+  }
+}
+
+AI OUTPUT VALIDATION — always validate before using:
+
+const OptimizationResultSchema = z.object({
+  atsScore:        z.number().int().min(0).max(100),
+  keywordsToAdd:   z.array(z.string()).max(50),
+  matchedKeywords: z.array(z.string()).max(100),
+  suggestions:     z.array(z.string().max(500)).min(1).max(10),
+});
+
+// After receiving AI response:
+let raw;
+try {
+  raw = JSON.parse(aiResponse.choices[0].message.content);
+} catch {
+  // Re-prompt: "Your previous response was not valid JSON. Respond only with JSON."
+  throw new Error('AI returned non-JSON response');
+}
+
+const parsed = OptimizationResultSchema.safeParse(raw);
+if (!parsed.success) {
+  Sentry.captureMessage('AI returned invalid structure', { extra: { raw, errors: parsed.error } });
+  throw new Error('AI returned invalid structure');
+}
+return parsed.data; // Type-safe from here
+
+PROMPT VERSIONING SYSTEM:
+1. Store all prompts in src/lib/prompts/ directory — treat like code
+2. Add version comment header to each: // @version 2.3 @updated 2026-03 @author team
+3. A/B test prompts: Route 50/50 between variants based on userId hash, measure output quality
+4. Log prompt + response pairs: Create PromptLog prisma model for debugging and improvement
+5. Semantic caching: Cache by embedding similarity, not exact string hash — ~40% cache hit rate improvement
+
+SEMANTIC CACHING APPROACH:
+- Generate embedding of input (resume + job description combined)
+- Check Redis for semantically similar cached result within cosine similarity threshold 0.95
+- Return cached result if match found — save Groq API call
+- Store new result with its embedding vector after fresh computation
+
+
+================================================================================
+SECTION 15: AUTHENTICATION & SECURITY
+================================================================================
+
+CLERK CONFIGURATION HARDENING — implement all:
+1. Enable MFA in Clerk dashboard — TOTP-based 2FA as optional feature for Pro users
+2. Set session lifetime to 7 days maximum — reduce attack window from unlimited sessions
+3. Create Clerk webhook for user.created event → auto-provision user preferences row in DB
+4. Create Clerk webhook for user.deleted event → GDPR cascade delete all user data
+5. Add user roles via Clerk metadata: { plan: 'free' | 'pro' | 'admin' }
+6. Protect admin routes in middleware.ts: check metadata.plan === 'admin' before allowing access
+7. Rate limit sign-up endpoint: prevent spam account creation via IP-based limiting
+
+CLERK WEBHOOK ENDPOINT — FILE: src/app/api/webhooks/clerk/route.ts:
+
+export async function POST(req: Request) {
+  const payload = await req.json();
+  const { type, data } = payload;
+
+  if (type === 'user.created') {
+    // Provision default user settings in DB
+    await prisma.userSettings.create({ data: { clerkUserId: data.id, plan: 'free' } });
+  }
+
+  if (type === 'user.deleted') {
+    // GDPR: Delete ALL user data
+    await prisma.$transaction([
+      prisma.chatMessage.deleteMany({ where: { clerkUserId: data.id } }),
+      prisma.optimizationReport.deleteMany({ where: { clerkUserId: data.id } }),
+      prisma.resume.deleteMany({ where: { clerkUserId: data.id } }),
+    ]);
+  }
+
+  return Response.json({ received: true });
+}
+
+DATA PRIVACY IMPLEMENTATIONS:
+1. GDPR Delete: Delete all user data when Clerk user.deleted webhook fires (see above)
+2. Data Export endpoint: GET /api/user/export → returns all user data as downloadable JSON
+3. IP Hashing: Hash IPs before DB storage — crypto.createHash('sha256').update(ip + SALT).digest('hex')
+4. Resume Encryption: Encrypt JSON fields at rest using Prisma client extension with AES-256
+5. PII Masking in logs: Mask email/phone before they appear in any console.log or external log service
+6. Cookie security: Clerk session cookies set with httpOnly: true, sameSite: 'strict', secure: true
+
+
+================================================================================
+SECTION 16: ACCESSIBILITY (WCAG 2.1 AA)
+================================================================================
+
+ARIA IMPLEMENTATION — add to every component:
+
+Resume section accordions:
+  role="region" aria-expanded={isOpen} aria-controls="section-content-id"
+  <div id="section-content-id" role="region" aria-label="Experience section">
+
+ATS score gauge:
+  role="meter" aria-valuenow={score} aria-valuemin={0} aria-valuemax={100} aria-label="ATS Score"
+
+Chat messages container:
+  role="log" aria-live="polite" aria-label="Conversation with Career Coach"
+
+Loading states:
+  aria-busy="true" aria-label="Loading resumes..." on the loading container
+
+Toast notifications:
+  role="alert" aria-live="assertive" for errors
+  role="status" aria-live="polite" for success messages
+
+Modal dialogs:
+  role="dialog" aria-modal="true" aria-labelledby="modal-title-id"
+  First focusable element receives focus on open. Focus returns to trigger on close.
+
+Form errors:
+  aria-invalid="true" on invalid input
+  aria-describedby="error-message-id" linking input to error message
+
+Icon-only buttons:
+  aria-label="Delete resume named [resume name]" — descriptive, not just "Delete"
+
+Progress bars:
+  role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}
+
+KEYBOARD NAVIGATION — implement all:
+1. Tab order audit: Ensure logical tab order through every interactive element on every page
+2. Focus trap in modals: Tab key cycles within modal, Escape closes — install focus-trap-react
+3. Skip to content link: First tab stop, visually hidden until focused, jumps to main content
+   Implementation: <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 bg-purple-600 text-white px-4 py-2 rounded">Skip to content</a>
+4. Roving tabindex: For resume section item lists — arrow keys move between items, Tab exits group
+5. Custom keyboard shortcuts:
+   Cmd+S → save resume
+   Cmd+P → preview resume
+   Cmd+E → export as PDF
+   Escape → close any open panel/modal
+6. Visible focus indicators: All focus rings must have 3:1 contrast ratio vs adjacent colors
+   Default: outline: 2px solid hsl(var(--color-primary)); outline-offset: 2px
+
+COLOR CONTRAST REQUIREMENTS:
+Body text (zinc-400) on BG (zinc-950): Must pass AA 4.5:1 ✓
+Placeholder (zinc-500) on BG:          Must pass AA 3:1 ✓
+White on purple-600 button:            Must pass AA 4.5:1 ✓
+Muted text on white/5 card:            Verify — check border cases
+Inline link text:                      Use purple-300 not purple-400 for AA compliance
+
+SCREEN READER ANNOUNCEMENTS:
+- Announce dynamic content changes: chat messages, optimization results, save status
+- Use aria-live="polite" for non-urgent updates, aria-live="assertive" for errors
+- Announce page navigation: use document.title updates on route changes
+
+
+================================================================================
+SECTION 17: MOBILE & RESPONSIVE STRATEGY
+================================================================================
+
+MOBILE-SPECIFIC UX PATTERNS — implement all:
+1. Bottom navigation bar: Replace sidebar navigation with bottom nav on viewports below 768px. 4 icons: Dashboard, Builder, Optimizer, Coach.
+2. Touch targets: ALL buttons, links, and chip elements must be minimum 44x44px (Apple & Google HIG requirement)
+3. Swipe gestures: Swipe left on resume cards to reveal Delete action, swipe right to reveal Edit action
+4. Pull-to-refresh: Touch gesture to reload resume list — use react-use-gesture or touch events
+5. Mobile builder bottom sheets: Section editor opens as full-screen bottom sheet on mobile — use @radix-ui/react-dialog with bottom animation
+6. Virtual keyboard handling: Scroll active input into view above keyboard on iOS — use scrollIntoView() on focus
+7. Haptic feedback: Use navigator.vibrate(50) on button press, navigator.vibrate([100,50,100]) on errors
+8. Offline support: Cache resume data in IndexedDB — user can edit offline, sync on reconnect with conflict resolution
+9. PWA install prompt: Handle beforeinstallprompt event, show custom "Add to Home Screen" banner for returning users
+
+FILE: public/manifest.json (create for PWA):
+{
+  "name": "Resumate",
+  "short_name": "Resumate",
+  "description": "AI-Powered Resume Builder & Career Coach",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090B",
+  "theme_color": "#7C3AED",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
+
+RESPONSIVE BUILDER LAYOUT:
+
+/* Mobile (< 768px): Single panel, toggle preview */
+@media (max-width: 767px) {
+  .builder-layout { display: flex; flex-direction: column; }
+  .preview-panel { display: none; }
+  .preview-panel.show { display: block; position: fixed; inset: 0; z-index: 50; background: hsl(var(--color-bg)); }
+  .preview-toggle-btn { display: flex; position: fixed; bottom: 80px; right: 16px; z-index: 40; }
+}
+
+/* Tablet (768px–1023px): Side-by-side 55/45 split */
+@media (768px <= width < 1024px) {
+  .builder-layout { display: grid; grid-template-columns: 55fr 45fr; gap: 16px; }
+}
+
+/* Desktop (>= 1024px): Resizable panels */
+@media (min-width: 1024px) {
+  .builder-layout { display: flex; } /* Controlled by ResizablePanelGroup */
+}
+
+BOTTOM NAVIGATION — FILE: src/components/MobileNav.tsx:
+
+const navItems = [
+  { href: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/builder',    icon: FileText,         label: 'Builder'   },
+  { href: '/optimizer',  icon: Zap,              label: 'Optimizer' },
+  { href: '/coach',      icon: MessageCircle,    label: 'Coach'     },
+];
+
+// Fixed at bottom, height 64px, backdrop-blur background
+// Show only on md:hidden (below 768px)
+// Active item: purple color + scale 1.1 indicator dot above icon
+
+
+================================================================================
+SECTION 18: ERROR HANDLING & EDGE CASES
+================================================================================
+
+REACT ERROR BOUNDARIES — FILE: src/components/ErrorBoundary.tsx:
+
+import * as Sentry from '@sentry/nextjs';
+
+interface State { hasError: boolean; error: Error | null; }
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode; fallback?: React.ComponentType<{ error: Error | null; onReset: () => void }> }, State> {
+  state: State = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    Sentry.captureException(error, { extra: { componentStack: info.componentStack } });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      const Fallback = this.props.fallback ?? DefaultErrorFallback;
+      return <Fallback error={this.state.error} onReset={() => this.setState({ hasError: false, error: null })} />;
+    }
+    return this.props.children;
+  }
+}
+
+// Wrap EACH feature independently in layout or page:
+// <ErrorBoundary><ResumeBuilder /></ErrorBoundary>
+// <ErrorBoundary><AIOptimizer /></ErrorBoundary>
+// <ErrorBoundary><CareerCoachChat /></ErrorBoundary>
+// <ErrorBoundary><StatsDashboard /></ErrorBoundary>
+
+DefaultErrorFallback component should show:
+- Error icon, "Something went wrong" heading
+- "Try again" button (calls onReset)
+- "Reload page" button
+- Report issue link
+
+EDGE CASES — handle all of these:
+
+1.  AI returns malformed JSON:
+    Current: Likely crashes. Fix: Zod validate output, retry with "respond only in JSON" prompt on failure.
+
+2.  Groq API down:
+    Current: Error toast. Fix: Automatic fallback to OpenAI, user sees "Using backup AI" notice.
+
+3.  File > 10MB uploaded:
+    Current: Server rejects. Fix: Client-side file size validation BEFORE upload attempt, show friendly message.
+
+4.  Resume with 0 skills:
+    Current: Empty array renders silently. Fix: Show inline prompt "Add skills to improve your ATS score".
+
+5.  Network disconnects mid-save:
+    Current: Silent data loss. Fix: Queue save to IndexedDB, show "Offline — will sync when reconnected" banner, retry on reconnect.
+
+6.  Concurrent edits from 2 browser tabs:
+    Current: Last write wins, silently. Fix: ETag-based optimistic locking — compare updatedAt timestamps, show merge conflict UI.
+
+7.  Clerk auth token expires during session:
+    Current: 401 errors in API. Fix: Intercept 401 responses, auto-refresh Clerk token, retry original request.
+
+8.  Empty job description submitted:
+    Current: AI analysis may fail or produce garbage. Fix: Require minimum 100 characters, show char counter, disable Analyze button until met.
+
+9.  Resume in unsupported language:
+    Current: AI misinterprets. Fix: Detect language with franc library, show warning "Best results with English resumes".
+
+10. PDF export fails:
+    Current: Blank download or silent error. Fix: Catch jsPDF errors, show "Export failed — try again" toast with retry, log to Sentry.
+
+11. Optimization report with no suggestions:
+    Current: Empty suggestions list. Fix: AI prompt enforces minimum 3 suggestions, fallback to generic tips.
+
+12. Session timeout during long AI response:
+    Current: Stream breaks silently. Fix: Detect stream abort, show "Session expired — please sign in again" with redirect.
+
+
+================================================================================
+SECTION 19: TESTING STRATEGY
+================================================================================
+
+TESTING PYRAMID — implement all levels:
+
+Install: vitest, @testing-library/react, @testing-library/user-event, msw, playwright, @axe-core/playwright
+
+FILE: vitest.config.ts
+FILE: playwright.config.ts
+FILE: src/test/setup.ts — configure RTL, mock next/navigation, mock Clerk
+
+UNIT TESTS — target 60%+ coverage:
+Files to test:
+- src/hooks/useAutoSave.ts — test debounce, save success, save error, retry
+- src/hooks/useCountUp.ts — test animation math, cleanup
+- src/lib/cache.ts — test cache key generation, TTL logic
+- src/lib/ai-client.ts — test retry logic, fallback chain
+- src/lib/schemas.ts — test all Zod schemas with valid and invalid data
+- All pure utility functions in src/lib/utils.ts
+
+INTEGRATION TESTS — target 25%+ coverage with MSW for API mocking:
+Files to test:
+- src/app/api/resumes/route.ts — CRUD operations, auth checks, validation errors
+- src/app/api/ai/optimize/route.ts — AI response handling, caching, rate limiting
+- src/app/api/ai/chat/route.ts — streaming, message saving, session management
+- src/app/api/upload/route.ts — file validation, size limits, format detection
+
+E2E TESTS — target 15%+ with Playwright:
+FILE: e2e/signup-and-build.spec.ts
+FILE: e2e/upload-and-optimize.spec.ts
+FILE: e2e/chat-coach.spec.ts
+FILE: e2e/export-pdf.spec.ts
+FILE: e2e/delete-resume.spec.ts
+FILE: e2e/rate-limit.spec.ts
+
+Critical paths to cover:
+Path 1: User signs up → completes onboarding → builds first resume → sees it in dashboard
+Path 2: User uploads PDF → AI parses it → data populates builder → user saves
+Path 3: User pastes job description → runs optimization → sees ATS score → accepts keyword suggestions
+Path 4: User opens coach → sends message → receives streaming response → reaction thumbs up
+Path 5: User clicks Export → PDF downloads → file contains correct name and email
+Path 6: User clicks Delete resume → confirm dialog appears → resume removed from list
+Path 7: User hammers Optimize button → hits rate limit → sees friendly wait countdown
+
+ACCESSIBILITY TESTING:
+- Install @axe-core/playwright
+- Run axe scan on every page in Playwright suite
+- Fail CI build if any WCAG violations found
+- Test keyboard navigation through complete user flows without mouse
+
+VISUAL REGRESSION:
+- Install @chromatic-com/storybook or Percy
+- Create Storybook stories for all major components
+- Screenshot comparison blocks merge on visual changes
+
+PERFORMANCE TESTING:
+- Install @lhci/cli (Lighthouse CI)
+- Run Lighthouse on every PR against staging URL
+- Fail if: LCP > 2.5s, Performance score < 90, Accessibility score < 95
+
+
+================================================================================
+SECTION 20: DEPLOYMENT & DEVOPS
+================================================================================
+
+CI/CD PIPELINE — FILE: .github/workflows/ci.yml:
+
+name: CI/CD Pipeline
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: npm ci
+      - run: npm run type-check       # npx tsc --noEmit
+      - run: npm run lint             # ESLint + Prettier check
+      - run: npm run test             # Vitest unit + integration
+      - run: npm run build            # Ensure build passes without errors
+
+  e2e:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npm run test:e2e
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+  lighthouse:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci
+      - run: npx lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+  accessibility:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run test:a11y    # axe-playwright scan
+
+  deploy:
+    needs: [e2e, lighthouse, accessibility]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+
+PACKAGE.JSON SCRIPTS — add all:
+"type-check": "tsc --noEmit"
+"test": "vitest run"
+"test:watch": "vitest"
+"test:e2e": "playwright test"
+"test:a11y": "playwright test --project=accessibility"
+"build": "next build"
+"analyze": "ANALYZE=true next build"
+
+ENVIRONMENT STRATEGY:
+Environment: Development → Branch: feature/*  → DB: Local Postgres or Neon dev branch → AI: Groq free tier
+Environment: Staging     → Branch: develop     → DB: Neon staging branch               → AI: Groq free tier
+Environment: Production  → Branch: main        → DB: Neon production with PgBouncer     → AI: Groq paid tier
+
+LIGHTHOUSE CI CONFIG — FILE: lighthouserc.js:
+
+module.exports = {
+  ci: {
+    collect: { url: ['http://localhost:3000/', 'http://localhost:3000/builder', 'http://localhost:3000/optimizer'] },
+    assert: {
+      assertions: {
+        'categories:performance':    ['warn',  { minScore: 0.9 }],
+        'categories:accessibility':  ['error', { minScore: 0.95 }],
+        'categories:best-practices': ['warn',  { minScore: 0.9 }],
+        'first-contentful-paint':    ['error', { maxNumericValue: 2000 }],
+        'largest-contentful-paint':  ['error', { maxNumericValue: 2500 }],
+        'cumulative-layout-shift':   ['error', { maxNumericValue: 0.1 }],
+      },
+    },
+  },
+};
+
+
+================================================================================
+SECTION 21: MONITORING & OBSERVABILITY
+================================================================================
+
+MONITORING STACK — set up all:
+
+1. Sentry: Error tracking, performance tracing, session replay
+   Install: @sentry/nextjs
+   FILE: sentry.client.config.ts, sentry.server.config.ts
+   Add DSN env var: SENTRY_DSN
+   Capture: all unhandled errors, all API route errors (via withErrorHandling), AI failures
+
+2. Vercel Analytics: Web vitals, page views, real user metrics
+   Install: @vercel/analytics
+   Add to root layout: import { Analytics } from '@vercel/analytics/react'; <Analytics />
+   Enable in Vercel dashboard under Analytics tab
+
+3. Vercel Speed Insights: LCP, FID, CLS per route
+   Install: @vercel/speed-insights
+   Add to root layout: import { SpeedInsights } from '@vercel/speed-insights/next'; <SpeedInsights />
+
+4. Upstash Redis Dashboard: Rate limit monitoring, cache hit/miss rates
+   Available automatically in Upstash console when redis is configured
+
+5. Axiom or Logtail: Structured log aggregation
+   Install: @axiomhq/pino or pino + logtail transport
+   FILE: src/lib/logger.ts — structured logger used in all API routes
+   Log fields: userId, route, duration, statusCode, errorMessage
+
+6. Checkly: Synthetic uptime monitoring for critical flows
+   Create checks for: sign-in flow, resume creation, optimization run
+   Alert on: any check failing, response time > 3s
+   Run frequency: every 5 minutes from 3 regions
+
+KEY METRICS TO TRACK — instrument all:
+1. Activation rate:         % of new users who create first resume within 24h — track via UserActivity
+2. Optimization engagement: % of resume creators who run at least 1 optimization — query DB
+3. Score improvement:       Average ATS score delta first run vs latest run per user — aggregate query
+4. D7 retention:            % of users returning within 7 days — track login events via Clerk webhook
+5. AI error rate:           % of Groq calls that fail or return invalid JSON — track in Sentry + logger
+6. P95 API latency:         95th percentile response time per endpoint — Vercel Analytics + logger
+7. PDF export success rate: % of export attempts producing valid file — track in UserActivity
+
+
+================================================================================
+SECTION 22: IMPLEMENTATION ROADMAP
+================================================================================
+
+PHASE 1 — FOUNDATION (Weeks 1-2) — fix critical bugs, establish infrastructure:
+[1]  Implement CSS custom property design token system in globals.css
+[2]  Add React error boundaries to ResumeBuilder, AIOptimizer, CareerCoachChat, StatsDashboard
+[3]  Wire ChatMessage model: create GET /api/ai/chat/history, save messages in POST /api/ai/chat
+[4]  Replace dashboard mock data with real DB queries from OptimizationReport and UserActivity
+[5]  Add Upstash rate limiting to /api/ai/chat (10/min), /api/ai/optimize (5/min), /api/upload (10/hr)
+[6]  Add Zod validation schemas to ALL API routes — never use raw req.json() without validation
+[7]  Set up Sentry: install @sentry/nextjs, add sentry config files, wrap routes with error handler
+[8]  Create skeleton loading components for: resume list, builder, optimizer, dashboard, chat
+[9]  Add ARIA labels to all interactive elements: buttons, inputs, accordions, modals, progress bars
+[10] Add skip-to-content link as first focusable element in root layout
+
+PHASE 2 — COMPONENT REFACTOR (Weeks 3-4) — split monoliths, add micro-interactions:
+[1]  Split ResumeBuilder.tsx (28.5KB) → 6 section components + hooks + preview components
+[2]  Split AIOptimizer.tsx (42.9KB) → 8 feature components as listed in Section 6
+[3]  Add dynamic imports with Suspense + skeleton fallbacks for all heavy components
+[4]  Implement all 7 button micro-interaction states system-wide (hover/focus/active/loading/success/disabled)
+[5]  Create PageTransition.tsx and wrap all page layouts
+[6]  Implement stagger list animations on resume list, suggestion list, keyword chips
+[7]  Add ATS score count-up animation with useCountUp hook
+[8]  Build interactive keyword chip system with click-to-add-to-resume functionality
+[9]  Create EmptyState.tsx component and add to all 5 data views listed in Section 4
+[10] Implement input micro-interactions: floating label, focus ring, validation shake, character count
+
+PHASE 3 — FEATURES & POLISH (Weeks 5-6) — new capabilities, UX depth:
+[1]  Implement drag-and-drop section reordering with @dnd-kit — persist to DB
+[2]  Build AI section improvement: POST /api/ai/improve-section + AIImproveButton + diff modal
+[3]  Build before/after comparison diff view for resume improvements
+[4]  Add resume version history: ResumeVersion model + auto-snapshot on save + restore UI (5 versions)
+[5]  Implement multi-format export: existing PDF + DOCX (docx npm package) + plain TXT + JSON backup
+[6]  Build 7-step onboarding flow for new users with progress indicator component
+[7]  Add chat message reactions (thumbs up/down), copy button, regenerate button
+[8]  Build bottom navigation component for mobile (< 768px viewports)
+[9]  Set up Playwright E2E tests for all 7 critical user paths listed in Section 19
+[10] Add streaming analysis progress UI to optimizer (6 sequential steps with checkmarks)
+
+PHASE 4 — SCALE & GROWTH (Weeks 7-8) — infrastructure, growth features:
+[1]  Add SWR for all data fetching with optimistic updates across resume, optimizer, dashboard
+[2]  Implement Redis caching for optimization results with semantic similarity cache key
+[3]  Set up complete GitHub Actions CI/CD pipeline with all quality gates
+[4]  Configure Lighthouse CI — block deploy if LCP > 2.5s or accessibility < 95
+[5]  Set up Chromatic or Percy for visual regression testing on all major components
+[6]  Implement GDPR: data export endpoint GET /api/user/export + Clerk webhook cascade delete
+[7]  Build resume sharing: generate shareable public link with optional expiration
+[8]  Add PWA manifest, service worker for offline support, install prompt for returning users
+[9]  Full WCAG 2.1 AA audit and fix all violations — target Lighthouse accessibility score 98+
+[10] Add AI fallback chain: Groq → OpenAI → Anthropic with automatic provider switching
+
+EXPECTED IMPACT AFTER PHASE 4:
+Initial JS bundle:         ~280KB  → < 120KB
+Time to Interactive:       ~4.2s   → < 2.0s
+Lighthouse Performance:    ~65     → 95+
+Lighthouse Accessibility:  ~55     → 98+
+WCAG Compliance:           ~50%    → WCAG 2.1 AA full compliance
+Test Coverage:             0%      → 75%+
+Error Visibility:          None    → 100% captured in Sentry
+API Security:              Basic   → Rate-limited + validated + secured
+Mobile Experience:         Partial → Full native-feel with PWA
+User Activation Tracking:  None    → Fully instrumented
+
+
+================================================================================
+COMPLETE FILE LIST — ALL NEW FILES TO CREATE
+================================================================================
+
+src/styles/tokens.css
+src/lib/animation.ts
+src/lib/cache.ts
+src/lib/ai-client.ts
+src/lib/api-handler.ts
+src/lib/logger.ts
+src/lib/schemas.ts
+src/hooks/useAutoSave.ts
+src/hooks/useCountUp.ts
+src/hooks/useResumes.ts
+src/hooks/useOptimizationReports.ts
+src/hooks/useDashboardStats.ts
+src/hooks/useChatHistory.ts
+src/components/PageTransition.tsx
+src/components/ErrorBoundary.tsx
+src/components/MobileNav.tsx
+src/components/shared/EmptyState.tsx
+src/components/skeletons/BuilderSkeleton.tsx
+src/components/skeletons/OptimizerSkeleton.tsx
+src/components/skeletons/DashboardSkeleton.tsx
+src/components/skeletons/ResumeListSkeleton.tsx
+src/components/skeletons/ChatSkeleton.tsx
+src/components/builder/ResumeBuilder.tsx (refactored)
+src/components/builder/sections/PersonalInfoSection.tsx
+src/components/builder/sections/SummarySection.tsx
+src/components/builder/sections/ExperienceSection.tsx
+src/components/builder/sections/EducationSection.tsx
+src/components/builder/sections/ProjectsSection.tsx
+src/components/builder/sections/SkillsSection.tsx
+src/components/builder/shared/SectionWrapper.tsx
+src/components/builder/shared/AddItemButton.tsx
+src/components/builder/shared/DraggableItem.tsx
+src/components/builder/shared/AIImproveButton.tsx
+src/components/builder/preview/ResumePreview.tsx
+src/components/builder/preview/TemplateRenderer.tsx
+src/components/optimizer/AIOptimizer.tsx (refactored)
+src/components/optimizer/JobDescriptionInput.tsx
+src/components/optimizer/ResumeSelector.tsx
+src/components/optimizer/AnalysisProgress.tsx
+src/components/optimizer/ScoreCard.tsx
+src/components/optimizer/KeywordsPanel.tsx
+src/components/optimizer/SuggestionsPanel.tsx
+src/components/optimizer/ComparisonView.tsx
+src/components/optimizer/ReportHistory.tsx
+src/components/chat/MessageBubble.tsx
+src/components/onboarding/OnboardingFlow.tsx
+src/components/onboarding/OnboardingProgress.tsx
+src/app/api/ai/chat/history/route.ts
+src/app/api/ai/improve-section/route.ts
+src/app/api/dashboard/stats/route.ts
+src/app/api/user/export/route.ts
+src/app/api/webhooks/clerk/route.ts
+src/app/api/resumes/[id]/versions/route.ts
+src/app/api/resumes/[id]/share/route.ts
+public/manifest.json
+public/service-worker.js
+lighthouserc.js
+vitest.config.ts
+playwright.config.ts
+.github/workflows/ci.yml
+sentry.client.config.ts
+sentry.server.config.ts
+e2e/signup-and-build.spec.ts
+e2e/upload-and-optimize.spec.ts
+e2e/chat-coach.spec.ts
+e2e/export-pdf.spec.ts
+e2e/delete-resume.spec.ts
+e2e/rate-limit.spec.ts
+
+================================================================================
+PACKAGES TO INSTALL
+================================================================================
+
+npm install @upstash/redis @upstash/ratelimit
+npm install swr
+npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
+npm install focus-trap-react
+npm install react-markdown react-syntax-highlighter
+npm install @sentry/nextjs
+npm install @vercel/analytics @vercel/speed-insights
+npm install inngest
+npm install docx                          # for DOCX export
+npm install franc                         # for language detection
+npm install shepherd.js                   # for onboarding tooltips
+npm install msw --save-dev               # for API mocking in tests
+npm install vitest @testing-library/react @testing-library/user-event --save-dev
+npm install playwright @playwright/test --save-dev
+npm install @axe-core/playwright --save-dev
+npm install @lhci/cli --save-dev
+npm install pino --save-dev              # structured logging
+
+================================================================================
+END OF AGENT BUILD INSTRUCTIONS
+Total features: 22 sections, 150+ individual implementation tasks
+Generated: March 2026 | Resumate Production Optimization Report v1.0
+================================================================================

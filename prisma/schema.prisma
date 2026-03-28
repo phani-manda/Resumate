@@ -62,42 +62,129 @@ model Verification {
   updatedAt  DateTime @updatedAt
 }
 
-// New models for AI features
+// ============================================================================
+// RESUME MODELS
+// ============================================================================
+
 model Resume {
   id           String   @id @default(cuid())
   userId       String
   clerkUserId  String
+  title        String?  // Resume title/name
   personalInfo Json
   summary      String?
   experiences  Json
   education    Json
+  projects     Json?
   skills       String[]
+  sectionOrder String[] // Persist drag-and-drop section order
+  templateId   String?  // Support multiple resume templates
+  targetRole   String?  // Feed into AI context
+  isArchived   Boolean  @default(false) // Soft delete
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Relations
+  versions ResumeVersion[]
+  views    ResumeView[]
+
+  @@unique([clerkUserId, title])
   @@index([clerkUserId])
+  @@index([clerkUserId, updatedAt])
 }
+
+model ResumeVersion {
+  id        String   @id @default(cuid())
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  snapshot  Json     // Full resume data at snapshot time
+  label     String?  // Optional user label (e.g., "Before optimization")
+  createdAt DateTime @default(now())
+
+  @@index([resumeId, createdAt])
+}
+
+model ResumeView {
+  id        String   @id @default(cuid())
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  viewerIp  String   // SHA-256 hashed for privacy
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([resumeId])
+}
+
+// ============================================================================
+// CHAT MODELS
+// ============================================================================
 
 model ChatMessage {
   id          String   @id @default(cuid())
   userId      String
   clerkUserId String
-  role        String
+  role        String   // 'user' | 'assistant' | 'system'
   content     String
   timestamp   DateTime @default(now())
+  sessionId   String?  // Group messages into sessions
+  reaction    String?  // 'thumbsUp' | 'thumbsDown' — for quality feedback
 
   @@index([clerkUserId])
+  @@index([clerkUserId, timestamp])
+  @@index([sessionId])
 }
 
+// ============================================================================
+// OPTIMIZATION MODELS
+// ============================================================================
+
 model OptimizationReport {
+  id           String   @id @default(cuid())
+  userId       String
+  clerkUserId  String
+  resumeId     String?
+  jobTitle     String?  // Target job title
+  companyName  String?  // Target company
+  atsScore     Int
+  keywords     Json     // { matched: string[], missing: string[], partial: string[] }
+  suggestions  Json     // Array of suggestion strings
+  improvements Json?    // Detailed improvement recommendations
+  createdAt    DateTime @default(now())
+
+  @@index([clerkUserId])
+  @@index([clerkUserId, createdAt])
+  @@index([resumeId])
+}
+
+// ============================================================================
+// ANALYTICS MODELS
+// ============================================================================
+
+model UserActivity {
   id          String   @id @default(cuid())
-  userId      String
   clerkUserId String
-  resumeId    String?
-  atsScore    Int
-  keywords    Json
-  suggestions Json
+  action      String   // 'resume_created' | 'optimized' | 'chat' | 'exported' | 'resume_viewed' | etc.
+  metadata    Json?    // Additional context (resumeId, score, etc.)
   createdAt   DateTime @default(now())
+
+  @@index([clerkUserId, createdAt])
+  @@index([action])
+}
+
+// ============================================================================
+// USER SETTINGS
+// ============================================================================
+
+model UserSettings {
+  id               String   @id @default(cuid())
+  clerkUserId      String   @unique
+  plan             String   @default("free") // 'free' | 'pro' | 'admin'
+  onboardingStep   Int      @default(0)
+  onboardingDone   Boolean  @default(false)
+  preferredTone    String   @default("formal") // 'formal' | 'concise' | 'detailed'
+  emailNotify      Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([clerkUserId])
 }

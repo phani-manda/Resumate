@@ -34,11 +34,14 @@ export function CareerCoachChat() {
     },
   })
 
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: 'smooth' })
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector('[data-slot="scroll-area-viewport"]')
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight
+      }
     }
   }, [messages])
 
@@ -54,10 +57,10 @@ export function CareerCoachChat() {
   }
 
   return (
-    <div className="grid h-[calc(100vh-10rem)] grid-cols-1 gap-6 lg:grid-cols-3">
+    <div className="grid h-full grid-cols-1 grid-rows-1 gap-6 overflow-hidden lg:grid-cols-3">
       {/* Main Chat Panel - Fixed height with internal scroll */}
-      <div className="lg:col-span-2">
-        <Card className="flex h-full flex-col">
+      <div className="lg:col-span-2 min-h-0 overflow-hidden">
+        <Card className="flex h-full flex-col overflow-hidden">
           <CardHeader className="flex-shrink-0 border-b">
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
@@ -82,7 +85,7 @@ export function CareerCoachChat() {
             )}
             
             {/* Scrollable Messages Area - Only this scrolls */}
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-hidden" ref={scrollAreaRef}>
               <ScrollArea className="h-full">
                 <div className="space-y-4 px-6 py-4">
                 <AnimatePresence>
@@ -155,7 +158,6 @@ export function CareerCoachChat() {
                     </div>
                   </motion.div>
                 )}
-                <div ref={scrollRef} />
               </div>
               </ScrollArea>
             </div>
@@ -180,7 +182,7 @@ export function CareerCoachChat() {
       </div>
 
       {/* Right Sidebar - Fixed with internal scroll */}
-      <div className="flex flex-col gap-6 overflow-hidden">
+      <div className="flex flex-col gap-6 overflow-hidden min-h-0">
         {/* Quick Tips Card */}
         <Card className="flex-shrink-0">
           <CardHeader>

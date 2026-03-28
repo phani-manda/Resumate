@@ -4,8 +4,12 @@ import { SignIn } from '@clerk/nextjs'
 import { motion } from 'framer-motion'
 import { Sparkles, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function SignInPage() {
+function SignInContent() {
+  const searchParams = useSearchParams()
+  
   return (
     <div className="min-h-screen w-full lg:grid lg:grid-cols-2 overflow-hidden bg-background">
       {/* Left Side - Visual */}
@@ -61,7 +65,7 @@ export default function SignInPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent pointer-events-none" />
 
         <div className="w-full max-w-md space-y-8 relative z-10">
-          {searchParams.timeout === 'true' && (
+          {searchParams.get('timeout') === 'true' && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -85,16 +89,28 @@ export default function SignInPage() {
                   card: "bg-transparent shadow-none border-none",
                   headerTitle: "hidden",
                   headerSubtitle: "hidden",
-                  socialButtonsBlockButton: "bg-white/5 border-white/10 hover:bg-white/10 text-white",
-                  formFieldLabel: "text-zinc-400",
-                  formFieldInput: "bg-black/20 border-white/10 focus:border-primary/50 text-white",
-                  footer: "hidden"
+                  socialButtonsBlockButton: "bg-white/10 border-white/20 hover:bg-white/15 text-white font-medium",
+                  socialButtonsBlockButtonText: "text-white",
+                  dividerLine: "bg-white/20",
+                  dividerText: "text-zinc-400",
+                  formFieldLabel: "text-zinc-300 font-medium",
+                  formFieldInput: "bg-black/40 border-white/20 focus:border-primary/50 text-white placeholder:text-zinc-500",
+                  formFieldInputPlaceholder: "text-zinc-500",
+                  identifierPreviewText: "text-white",
+                  identifierPreviewEditButton: "text-primary hover:text-primary/80",
+                  formFieldAction: "text-primary hover:text-primary/80",
+                  footerActionLink: "text-primary hover:text-primary/80",
+                  footer: "hidden",
+                  otpCodeFieldInput: "bg-black/40 border-white/20 text-white",
+                  formResendCodeLink: "text-primary hover:text-primary/80",
+                  alternativeMethodsBlockButton: "text-zinc-300 hover:text-white border-white/20 hover:bg-white/10",
+                  badge: "bg-white/10 text-zinc-300 border-white/20"
                 }
               }}
             />
 
             {/* Custom Footer Links because we hid Clerk's */}
-            <div className="mt-6 text-center text-sm text-zinc-500">
+            <div className="mt-6 text-center text-sm text-zinc-400">
               Don't have an account?
               <Link href="/sign-up" className="ml-1 text-primary hover:text-primary/80 font-medium transition-colors">
                 Create Account
@@ -104,5 +120,24 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function SignInFallback() {
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center bg-background">
+      <div className="animate-pulse flex flex-col items-center gap-4">
+        <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10" />
+        <div className="h-4 w-32 bg-white/10 rounded" />
+      </div>
+    </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<SignInFallback />}>
+      <SignInContent />
+    </Suspense>
   )
 }

@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import mammoth from 'mammoth'
 import { ollama } from 'ollama-ai-provider'
 import { generateText } from 'ai'
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
+import { extractText } from 'unpdf'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -23,67 +23,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
+    // Server-side file size validation (10MB limit)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: 'File too large. Maximum size is 10MB.' },
+        { status: 400 }
+      )
+    }
+
     const fileType = file.type
     const buffer = Buffer.from(await file.arrayBuffer())
     let text = ''
 
     try {
       if (fileType === 'application/pdf') {
-        // Extract text from PDF using pdfjs-dist legacy build
-        console.log('Processing PDF with pdfjs-dist legacy...')
+        // Extract text from PDF using unpdf (serverless-compatible)
+        console.log('Processing PDF with unpdf...')
         
         const uint8Array = new Uint8Array(buffer)
-        const loadingTask = pdfjsLib.getDocument({
-          data: uint8Array,
-          verbosity: 0, // Suppress warnings
-        })
-        
-        const pdfDocument = await loadingTask.promise
-        const numPages = pdfDocument.numPages
-        console.log(`PDF has ${numPages} pages`)
-        
-        const textPages: string[] = []
-        
-        // Extract text from each page with better formatting
-        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-          const page = await pdfDocument.getPage(pageNum)
-          const textContent = await page.getTextContent()
-          
-          // Sort items by vertical position for better reading order
-          const sortedItems = textContent.items.sort((a: any, b: any) => {
-            // Sort by Y position (top to bottom)
-            if (Math.abs(a.transform[5] - b.transform[5]) > 5) {
-              return b.transform[5] - a.transform[5]
-            }
-            // Then by X position (left to right) if on same line
-            return a.transform[4] - b.transform[4]
-          })
-          
-          let pageText = ''
-          let lastY = -1
-          
-          for (const item of sortedItems) {
-            const str = item.str.trim()
-            if (!str) continue
-            
-            const currentY = item.transform[5]
-            
-            // Add line break if we moved to a new line
-            if (lastY !== -1 && Math.abs(currentY - lastY) > 5) {
-              pageText += '\n'
-            } else if (lastY !== -1) {
-              // Same line, add space
-              pageText += ' '
-            }
-            
-            pageText += str
-            lastY = currentY
-          }
-          
-          textPages.push(pageText.trim())
-        }
-        
-        const rawText = textPages.join('\n\n--- Page Break ---\n\n')
+        const { text: textPages } = await extractText(uint8Array)
+        const rawText = Array.isArray(textPages) ? textPages.join('\n') : textPages
         console.log(`Extracted ${rawText.length} characters from PDF`)
         
         // Use Ollama to clean and structure the extracted text
@@ -91,6 +51,7 @@ export async function POST(request: NextRequest) {
           console.log('Cleaning PDF text with Ollama...')
           try {
             const { text: cleanedText } = await generateText({
+              // @ts-expect-error - AI SDK version type mismatch
               model: ollama('llama3.2'),
               prompt: `You are a text cleaning assistant. The following text was extracted from a PDF resume but may have formatting issues, broken lines, or scattered information.
 
@@ -111,10 +72,10 @@ Return ONLY the cleaned, well-structured resume text without any additional comm
             console.log('PDF text cleaned successfully')
           } catch (ollamaError) {
             console.log('Ollama cleaning unavailable, using raw text:', ollamaError)
-            text = rawText.replace(/--- Page Break ---/g, '')
+            text = rawText
           }
         } else {
-          text = rawText.replace(/--- Page Break ---/g, '')
+          text = rawText
         }
       } else if (
         fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
@@ -128,6 +89,7 @@ Return ONLY the cleaned, well-structured resume text without any additional comm
         // Use Ollama to clean and structure DOCX text
         try {
           const { text: cleanedText } = await generateText({
+            // @ts-expect-error - AI SDK version type mismatch
             model: ollama('llama3.2'),
             prompt: `Clean and properly format this resume text. Fix any formatting issues and organize it into clear sections:
 

@@ -1,0 +1,9 @@
+{
+  "projectId": "e85dbe7e-a746-48fb-8e55-f5acdea42d49",
+  "createdAt": 1770749212682,
+  "version": "1.0",
+  "startupCommands": [
+    "npm install; npx prisma generate; npm run dev"
+  ],
+  "templateId": "nextjs"
+}

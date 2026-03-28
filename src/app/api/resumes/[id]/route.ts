@@ -48,7 +48,21 @@ export async function PUT(
     }
 
     const { id } = await params
-    const data = await request.json()
+    const body = await request.json()
+
+    // Whitelist allowed fields to prevent mass assignment attacks
+    const allowedFields = ['personalInfo', 'summary', 'experiences', 'education', 'projects', 'skills']
+    const data: Record<string, unknown> = {}
+    
+    for (const field of allowedFields) {
+      if (body[field] !== undefined) {
+        data[field] = body[field]
+      }
+    }
+
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
+    }
 
     const resume = await prisma.resume.update({
       where: { 

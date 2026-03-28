@@ -74,16 +74,28 @@ export default function SignUpPage() {
                   card: "bg-transparent shadow-none border-none",
                   headerTitle: "hidden",
                   headerSubtitle: "hidden",
-                  socialButtonsBlockButton: "bg-white/5 border-white/10 hover:bg-white/10 text-white",
-                  formFieldLabel: "text-zinc-400",
-                  formFieldInput: "bg-black/20 border-white/10 focus:border-primary/50 text-white",
-                  footer: "hidden"
+                  socialButtonsBlockButton: "bg-white/10 border-white/20 hover:bg-white/15 text-white font-medium",
+                  socialButtonsBlockButtonText: "text-white",
+                  dividerLine: "bg-white/20",
+                  dividerText: "text-zinc-400",
+                  formFieldLabel: "text-zinc-300 font-medium",
+                  formFieldInput: "bg-black/40 border-white/20 focus:border-primary/50 text-white placeholder:text-zinc-500",
+                  formFieldInputPlaceholder: "text-zinc-500",
+                  identifierPreviewText: "text-white",
+                  identifierPreviewEditButton: "text-primary hover:text-primary/80",
+                  formFieldAction: "text-primary hover:text-primary/80",
+                  footerActionLink: "text-primary hover:text-primary/80",
+                  footer: "hidden",
+                  otpCodeFieldInput: "bg-black/40 border-white/20 text-white",
+                  formResendCodeLink: "text-primary hover:text-primary/80",
+                  alternativeMethodsBlockButton: "text-zinc-300 hover:text-white border-white/20 hover:bg-white/10",
+                  badge: "bg-white/10 text-zinc-300 border-white/20"
                 }
               }}
             />
 
             {/* Custom Footer Links */}
-            <div className="mt-6 text-center text-sm text-zinc-500">
+            <div className="mt-6 text-center text-sm text-zinc-400">
               Already have an account?
               <Link href="/sign-in" className="ml-1 text-primary hover:text-primary/80 font-medium transition-colors">
                 Log in

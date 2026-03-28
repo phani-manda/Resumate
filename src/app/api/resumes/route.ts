@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json()
-    const { personalInfo, summary, experiences, education, skills } = data
+    const { personalInfo, summary, experiences, education, projects, skills } = data
 
     const resume = await prisma.resume.create({
       data: {
@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         summary,
         experiences,
         education,
+        projects: projects || [],
         skills: skills || [],
       },
     })
