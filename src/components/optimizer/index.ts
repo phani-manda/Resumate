@@ -7,6 +7,10 @@ export { SuggestionsPanel } from './SuggestionsPanel'
 export { EmptyResultsState } from './EmptyResultsState'
 export { ResultsPanel } from './ResultsPanel'
 
+// Phase 3 Components
+export { ATSScoreGauge, ScoreBreakdown, ScoreComparison, ScoreDelta } from './ATSScoreGauge'
+export { AnalysisProgress, AnalysisProgressInline } from './AnalysisProgress'
+
 // Hooks
 export { useOptimizer } from './useOptimizer'
 

@@ -7,10 +7,18 @@ export { SkillsSection } from './SkillsSection'
 export { ResumePreview } from './ResumePreview'
 export { ActionToolbar } from './ActionToolbar'
 
+// Phase 3 Components
+export { DraggableSections } from './DraggableSections'
+export { SortableSection } from './SortableSection'
+export { VersionHistory } from './VersionHistory'
+export { ExportMenu } from './ExportMenu'
+export { TemplatePicker, RESUME_TEMPLATES, useTemplateStyles } from './TemplatePicker'
+
 // Hooks
 export { useResumeBuilder } from './useResumeBuilder'
 export { useFileUpload } from './useFileUpload'
 export { usePdfExport } from './usePdfExport'
+export { useExportFormats } from './useExportFormats'
 
 // Types
 export type {
@@ -23,3 +31,4 @@ export type {
   SaveStatus,
   UseResumeBuilderReturn,
 } from './types'
+export type { ResumeTemplate } from './TemplatePicker'
