@@ -41,7 +41,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
+    <ClerkProvider
+      publishableKey={clerkPublishableKey}
+      afterSignOutUrl="/"
+    >
       <html lang="en" suppressHydrationWarning>
         <head suppressHydrationWarning>
           {/* Preconnect to external services */}

@@ -126,7 +126,6 @@ Keep responses concise but comprehensive, typically 2-4 paragraphs unless more d
 
     // Stream AI response
     const result = await streamText({
-      // @ts-expect-error - AI SDK version type mismatch
       model: model,
       messages,
       system: systemPrompt,

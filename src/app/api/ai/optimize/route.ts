@@ -73,7 +73,6 @@ Return ONLY valid JSON in this exact format:
     let text
     try {
       const response = await generateText({
-        // @ts-expect-error - AI SDK version type mismatch
         model: model,
         prompt,
       })

@@ -150,7 +150,6 @@ CRITICAL parsing rules - follow ALL of these:
   const model = groq('llama-3.3-70b-versatile')
   
   const response = await generateText({
-    // @ts-expect-error - AI SDK version type mismatch
     model: model,
     prompt,
     maxTokens: 8192,

@@ -51,7 +51,6 @@ export async function POST(request: NextRequest) {
           console.log('Cleaning PDF text with Ollama...')
           try {
             const { text: cleanedText } = await generateText({
-              // @ts-expect-error - AI SDK version type mismatch
               model: ollama('llama3.2'),
               prompt: `You are a text cleaning assistant. The following text was extracted from a PDF resume but may have formatting issues, broken lines, or scattered information.
 
@@ -89,7 +88,6 @@ Return ONLY the cleaned, well-structured resume text without any additional comm
         // Use Ollama to clean and structure DOCX text
         try {
           const { text: cleanedText } = await generateText({
-            // @ts-expect-error - AI SDK version type mismatch
             model: ollama('llama3.2'),
             prompt: `Clean and properly format this resume text. Fix any formatting issues and organize it into clear sections:
 

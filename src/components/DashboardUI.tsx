@@ -28,7 +28,6 @@ type TabType = "home" | "dashboard" | "builder" | "optimizer" | "coach";
 function UserButtonWrapper() {
   return (
     <UserButton 
-      afterSignOutUrl="/"
       appearance={{
         elements: {
           avatarBox: "w-10 h-10 border-2 border-orange-500 rounded-full",
