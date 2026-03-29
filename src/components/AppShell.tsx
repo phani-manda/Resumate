@@ -34,64 +34,80 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="flex h-screen flex-col overflow-hidden bg-background">
-            {/* Top Navigation Bar */}
-            <nav className="fixed left-0 right-0 top-0 z-50 hidden bg-background/92 lg:flex">
-                <div className="page-frame flex h-24 items-center justify-between gap-6">
-                    <Link href="/" className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card/78 shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all group hover:-translate-y-0.5 xl:h-16 xl:w-16">
-                        <span className="text-2xl font-black text-foreground transition-colors group-hover:text-orange-500">R</span>
-                    </Link>
+            {/* Top Navigation Bar with Slant */}
+            <nav className="fixed left-0 right-0 top-0 z-50 hidden lg:flex">
+                <div className="relative w-full">
+                    {/* Slanted background layer */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-background/95 to-background/98 backdrop-blur-xl"
+                         style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 0 100%)' }} />
 
-                    <div className="flex flex-1 justify-center">
-                        <div className="relative">
-                            <div className="absolute inset-0 rounded-full bg-orange-500/10 blur-2xl" />
-                            <div className="relative rounded-[2rem] bg-card/84 px-4 py-3 shadow-[var(--shadow-sm)]">
-                                <div className="flex items-center gap-3">
-                                {navItems.map((item) => {
-                                    const isActive = pathname === item.href
-                                    return (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            className={cn(
-                                                "flex items-center gap-2.5 rounded-full px-5 py-3 text-sm font-medium transition-all xl:px-6",
-                                                isActive
-                                                    ? "bg-orange-500 text-white shadow-[0_0_20px_-5px_rgba(255,102,0,0.5)]"
-                                                    : "text-muted-foreground hover:bg-background/80 hover:text-foreground"
-                                            )}
-                                        >
-                                            <item.icon className="h-5 w-5" />
-                                            <span>{item.label}</span>
-                                        </Link>
-                                    )
-                                })}
+                    <div className="page-frame relative flex h-24 items-center justify-between gap-6">
+                        <Link href="/" className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card/78 shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all group hover:-translate-y-0.5 xl:h-16 xl:w-16">
+                            <span className="text-2xl font-black text-foreground transition-colors group-hover:text-orange-500">R</span>
+                        </Link>
+
+                        <div className="flex flex-1 justify-center">
+                            <div className="relative">
+                                <div className="absolute inset-0 rounded-full bg-orange-500/10 blur-2xl" />
+                                <div className="relative rounded-[2rem] bg-card/84 px-4 py-3 shadow-[var(--shadow-sm)]">
+                                    <div className="flex items-center gap-3">
+                                    {navItems.map((item) => {
+                                        const isActive = pathname === item.href
+                                        return (
+                                            <Link
+                                                key={item.href}
+                                                href={item.href}
+                                                className={cn(
+                                                    "flex items-center gap-2.5 rounded-full px-5 py-3 text-sm font-medium transition-all xl:px-6",
+                                                    isActive
+                                                        ? "bg-orange-500 text-white shadow-[0_0_20px_-5px_rgba(255,102,0,0.5)]"
+                                                        : "text-muted-foreground hover:bg-background/80 hover:text-foreground"
+                                                )}
+                                            >
+                                                <item.icon className="h-5 w-5" />
+                                                <span>{item.label}</span>
+                                            </Link>
+                                        )
+                                    })}
+                                    </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <ThemeToggle />
+                            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-card/82 shadow-[var(--shadow-sm)]">
+                                {mounted ? (
+                                    <UserButton
+                                        appearance={{
+                                            elements: {
+                                                avatarBox: "h-10 w-10",
+                                            }
+                                        }}
+                                    />
+                                ) : (
+                                    <User className="h-5 w-5 text-neutral-500" />
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <ThemeToggle />
-                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-card/82 shadow-[var(--shadow-sm)]">
-                            {mounted ? (
-                                <UserButton
-                                    appearance={{
-                                        elements: {
-                                            avatarBox: "h-10 w-10",
-                                        }
-                                    }}
-                                />
-                            ) : (
-                                <User className="h-5 w-5 text-neutral-500" />
-                            )}
-                        </div>
-                    </div>
+                    {/* Slanted accent line */}
+                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-orange-500/40 to-transparent"
+                         style={{ clipPath: 'polygon(0 100%, 100% 0, 100% 100%, 0 100%)' }} />
                 </div>
             </nav>
 
-            {/* Main Content Wrapper */}
-            <main className="hidden flex-1 min-h-0 overflow-hidden bg-background pt-24 lg:flex lg:flex-col">
-                <div className="flex-1 min-h-0 overflow-hidden">
-                    {children}
+            {/* Main Content Wrapper with Slant */}
+            <main className="hidden flex-1 min-h-0 overflow-hidden pt-24 lg:flex lg:flex-col">
+                <div className="relative h-full w-full">
+                    {/* Slanted top edge that complements the nav */}
+                    <div className="absolute left-0 right-0 top-0 h-8 bg-gradient-to-b from-orange-500/5 to-transparent"
+                         style={{ clipPath: 'polygon(0 0, 100% 15%, 100% 100%, 0 100%)' }} />
+
+                    <div className="flex-1 h-full min-h-0 overflow-hidden relative z-10">
+                        {children}
+                    </div>
                 </div>
             </main>
 

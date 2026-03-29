@@ -862,4 +862,16 @@
     opacity: 1;
     transform: scaleY(1);
   }
+
+  .slant-nav-bottom {
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+  }
+
+  .slant-content-top {
+    clip-path: polygon(0 0, 100% 15%, 100% 100%, 0 100%);
+  }
+
+  .slant-divider {
+    clip-path: polygon(0 100%, 100% 0, 100% 100%, 0 100%);
+  }
 }
