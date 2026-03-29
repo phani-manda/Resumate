@@ -37,9 +37,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {/* Top Navigation Bar with Slant */}
             <nav className="fixed left-0 right-0 top-0 z-50 hidden lg:flex">
                 <div className="relative w-full">
-                    {/* Slanted background layer */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-background/95 to-background/98 backdrop-blur-xl"
-                         style={{ clipPath: 'polygon(0 0, 100% 0, 100% 85%, 0 100%)' }} />
+                    {/* Slanted background layer with more pronounced gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-background/92 to-background/95 backdrop-blur-xl"
+                         style={{ clipPath: 'polygon(0 0, 100% 0, 100% 80%, 0 100%)' }} />
+
+                    {/* Orange accent border on slanted edge */}
+                    <div className="absolute inset-0 opacity-60"
+                         style={{
+                             clipPath: 'polygon(0 0, 100% 0, 100% 80%, 0 100%)',
+                             background: 'linear-gradient(135deg, transparent 0%, rgba(255, 132, 32, 0.15) 70%, rgba(255, 132, 32, 0.25) 100%)'
+                         }} />
 
                     <div className="page-frame relative flex h-24 items-center justify-between gap-6">
                         <Link href="/" className="flex h-14 w-14 items-center justify-center rounded-2xl bg-card/78 shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all group hover:-translate-y-0.5 xl:h-16 xl:w-16">
@@ -92,8 +99,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         </div>
                     </div>
 
-                    {/* Slanted accent line */}
-                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-orange-500/40 to-transparent"
+                    {/* Slanted accent line - more visible */}
+                    <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-orange-500/60 to-transparent"
                          style={{ clipPath: 'polygon(0 100%, 100% 0, 100% 100%, 0 100%)' }} />
                 </div>
             </nav>
@@ -101,9 +108,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {/* Main Content Wrapper with Slant */}
             <main className="hidden flex-1 min-h-0 overflow-hidden pt-24 lg:flex lg:flex-col">
                 <div className="relative h-full w-full">
-                    {/* Slanted top edge that complements the nav */}
-                    <div className="absolute left-0 right-0 top-0 h-8 bg-gradient-to-b from-orange-500/5 to-transparent"
-                         style={{ clipPath: 'polygon(0 0, 100% 15%, 100% 100%, 0 100%)' }} />
+                    {/* Slanted top edge that complements the nav - more visible */}
+                    <div className="absolute left-0 right-0 top-0 h-12 bg-gradient-to-b from-orange-500/8 to-transparent"
+                         style={{ clipPath: 'polygon(0 0, 100% 20%, 100% 100%, 0 100%)' }} />
 
                     <div className="flex-1 h-full min-h-0 overflow-hidden relative z-10">
                         {children}
