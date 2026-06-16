@@ -1,13 +1,13 @@
 'use client'
 
 import { AppShell } from "@/components/AppShell"
-import { AIOptimizer } from "@/components/AIOptimizer"
+import { AIOptimizerRefactored } from "@/components/AIOptimizerRefactored"
 
 export function OptimizerShell() {
   return (
     <AppShell>
-      <div className="workspace-shell min-h-0 overflow-hidden">
-        <AIOptimizer />
+      <div className="flex h-[calc(100vh-3.5rem)] min-h-0 overflow-hidden">
+        <AIOptimizerRefactored />
       </div>
     </AppShell>
   )

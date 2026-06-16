@@ -31,7 +31,7 @@ export function PersonalInfoSection({
     <div className="grid gap-4 md:grid-cols-2 pt-4">
       {personalFields.map((field) => (
         <div key={field.id} className="space-y-1">
-          <Label htmlFor={`personal-${field.id}`} className="text-zinc-400 text-xs">
+          <Label htmlFor={`personal-${field.id}`} className="text-xs text-ink-secondary">
             {field.label}
           </Label>
           <Input
@@ -39,12 +39,12 @@ export function PersonalInfoSection({
             type={field.type || 'text'}
             value={personalInfo[field.id]}
             onChange={(e) => onPersonalInfoChange(field.id, e.target.value)}
-            className="bg-black/30 border-white/10 focus:border-primary/50 text-white h-9"
+            className="h-9"
           />
         </div>
       ))}
       <div className="col-span-2 space-y-1">
-        <Label htmlFor="summary" className="text-zinc-400 text-xs">
+        <Label htmlFor="summary" className="text-xs text-ink-secondary">
           Professional Summary
         </Label>
         <Textarea
@@ -53,7 +53,7 @@ export function PersonalInfoSection({
           value={summary}
           onChange={(e) => onSummaryChange(e.target.value)}
           placeholder="Write a brief professional summary..."
-          className="bg-black/30 border-white/10 focus:border-primary/50 text-white resize-none"
+          className="resize-none"
         />
       </div>
     </div>

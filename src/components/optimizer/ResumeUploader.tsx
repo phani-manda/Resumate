@@ -34,41 +34,39 @@ export function ResumeUploader({
       {!uploadedFile ? (
         <label
           htmlFor="resume-upload"
-          className="relative block cursor-pointer group/upload"
+          className="relative block cursor-pointer"
         >
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-orange-300/20 rounded-2xl blur opacity-0 group-hover/upload:opacity-100 transition duration-500" />
-          <div className="relative bg-black/40 border-2 border-dashed border-white/10 hover:border-orange-500/50 rounded-2xl p-8 transition-colors">
+          <div className="relative border-2 border-dashed border-line hover:border-line-strong rounded-xl p-8 transition-colors">
             <div className="flex flex-col items-center gap-3 text-center">
-              <div className="h-12 w-12 rounded-full bg-orange-500/20 flex items-center justify-center border border-orange-500/20">
-                <Upload className="h-6 w-6 text-orange-300" />
+              <div className="h-12 w-12 rounded-full bg-accent-subtle flex items-center justify-center border border-accent/20">
+                <Upload className="h-6 w-6 text-accent-text" />
               </div>
               <div>
-                <p className="text-white font-medium">Upload Resume</p>
-                <p className="text-xs text-zinc-400 mt-1">PDF, DOCX or DOC (Max 10MB)</p>
+                <p className="text-ink-primary font-medium">Upload Resume</p>
+                <p className="text-xs text-ink-muted mt-1">PDF, DOCX or DOC (Max 10MB)</p>
               </div>
               {isUploading && (
-                <Loader2 className="h-5 w-5 animate-spin text-orange-300" />
+                <Loader2 className="h-5 w-5 animate-spin text-accent" />
               )}
             </div>
           </div>
         </label>
       ) : (
-        <div className="relative group/file">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 to-orange-300/20 rounded-2xl blur" />
-          <div className="relative bg-black/60 border border-orange-500/30 rounded-2xl p-4">
+        <div className="relative">
+          <div className="relative border border-accent/30 rounded-xl p-4 bg-subtle">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-orange-500/20 flex items-center justify-center border border-orange-500/20">
-                <FileText className="h-5 w-5 text-orange-300" />
+              <div className="h-10 w-10 rounded-lg bg-accent-subtle flex items-center justify-center border border-accent/20">
+                <FileText className="h-5 w-5 text-accent-text" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-medium truncate">{uploadedFile.name}</p>
-                <p className="text-xs text-zinc-500">{(uploadedFile.size / 1024).toFixed(2)} KB</p>
+                <p className="text-ink-primary font-medium truncate">{uploadedFile.name}</p>
+                <p className="text-xs text-ink-muted">{(uploadedFile.size / 1024).toFixed(2)} KB</p>
               </div>
               <Button
                 onClick={onRemoveFile}
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 hover:bg-red-500/20 hover:text-red-400"
+                className="h-8 w-8 p-0 hover:text-destructive"
                 aria-label="Remove uploaded file"
               >
                 <X className="h-4 w-4" />

@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, RefObject } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
-import html2canvas from 'html2canvas'
-import { jsPDF } from 'jspdf'
+import { saveAs } from 'file-saver'
+import type { ResumeData } from './types'
 
 interface UsePdfExportOptions {
-  previewRef: RefObject<HTMLDivElement | null>
-  fileName?: string
+  resumeData: ResumeData
 }
 
 interface UsePdfExportReturn {
@@ -16,52 +15,39 @@ interface UsePdfExportReturn {
 }
 
 export function usePdfExport(options: UsePdfExportOptions): UsePdfExportReturn {
-  const { previewRef, fileName = 'Resume' } = options
+  const { resumeData } = options
   const [isDownloading, setIsDownloading] = useState(false)
 
   const handleDownloadPDF = async () => {
-    if (!previewRef.current) {
-      toast.error('Preview not available.')
-      return
-    }
-
     try {
       setIsDownloading(true)
       toast.loading('Compiling document...', { id: 'pdf-download' })
 
-      const element = previewRef.current
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(resumeData),
       })
 
-      const imgData = canvas.toDataURL('image/png')
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      })
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(err.error || `Server returned ${response.status}`)
+      }
 
-      const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = pdf.internal.pageSize.getHeight()
-      const imgWidth = canvas.width
-      const imgHeight = canvas.height
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight)
-      const imgX = (pdfWidth - imgWidth * ratio) / 2
-      const imgY = 10
+      const blob = await response.blob()
 
-      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio)
+      const fileName = resumeData.personalInfo.fullName
+        ? `${resumeData.personalInfo.fullName.replace(/\s+/g, '_')}_Resume.pdf`
+        : 'Resume.pdf'
 
-      const sanitizedFileName = fileName.replace(/\s+/g, '_')
-      pdf.save(`${sanitizedFileName}_Resume.pdf`)
-      
+      saveAs(blob, fileName)
       toast.success('Document downloaded.', { id: 'pdf-download' })
     } catch (error) {
       console.error('PDF generation failed:', error)
-      toast.error('Compilation failed', { id: 'pdf-download' })
+      toast.error(
+        error instanceof Error ? error.message : 'Compilation failed',
+        { id: 'pdf-download' }
+      )
     } finally {
       setIsDownloading(false)
     }

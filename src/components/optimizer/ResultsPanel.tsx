@@ -20,18 +20,21 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
     return 'Critical'
   }
 
+  const badgeVariant = (score: number): 'success' | 'warning' | 'danger' => {
+    if (score >= 80) return 'success'
+    if (score >= 60) return 'warning'
+    return 'danger'
+  }
+
   return (
-    <div className="h-full glass-panel rounded-3xl overflow-hidden border-white/10 shadow-2xl flex flex-col relative group">
-      <div className="absolute inset-0 bg-gradient-to-bl from-orange-500/10 to-transparent pointer-events-none" />
-      <div className="p-6 border-b border-white/10 bg-white/5 flex items-center justify-between relative z-10">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-orange-300" /> Analysis Report
+    <div className="relative flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-card">
+      <div className="flex shrink-0 items-center justify-between border-b border-line p-5">
+        <h2 className="flex items-center gap-2 text-heading-lg text-ink-primary">
+          <TrendingUp className="h-5 w-5 text-accent" />
+          Analysis Report
         </h2>
         {results && (
-          <Badge 
-            variant={results.atsScore >= 80 ? 'default' : 'secondary'} 
-            className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-          >
+          <Badge variant={badgeVariant(results.atsScore)}>
             {getScoreLabel(results.atsScore)} Match
           </Badge>
         )}
@@ -40,8 +43,8 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
       {!results ? (
         <EmptyResultsState />
       ) : (
-        <ScrollArea className="flex-1 bg-black/20 relative z-10">
-          <div className="p-6 space-y-6">
+        <ScrollArea className="flex-1">
+          <div className="space-y-6 p-5">
             <ScoreCard results={results} />
             <KeywordsPanel results={results} />
             <SuggestionsPanel results={results} />

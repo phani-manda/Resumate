@@ -46,7 +46,7 @@ I've cross-referenced every section (1–22) of the optimization document agains
 
 ### Step 5: Apply Rate Limiting to All API Routes
 - The rate limiting infrastructure exists in `file:src/lib/rate-limit.ts`
-- **Files to update:** `file:src/app/api/ai/chat/route.ts`, `file:src/app/api/ai/optimize/route.ts`, `file:src/app/api/upload/route.ts`, `file:src/app/api/resumes/route.ts`
+- **Files to update:** `file:src/app/api/ai/chat/route.ts`, `file:src/app/api/ai/optimize/route.ts`, `file:src/app/api/upload/parse/route.ts`, `file:src/app/api/resumes/route.ts`
 - Import and apply `withRateLimit` or `checkRateLimit` at the top of each route handler with the appropriate limiter type (`chat`, `ai`, `upload`, `general`)
 - Ensure the UI handles 429 responses gracefully — show a countdown timer to the user
 

@@ -59,8 +59,7 @@ export function ResumeBuilderRefactored() {
   })
 
   const { isDownloading, handleDownloadPDF } = usePdfExport({
-    previewRef,
-    fileName: resumeData.personalInfo.fullName || 'Resume',
+    resumeData,
   })
 
   const toggleSection = (sectionId: string) => {
@@ -119,7 +118,18 @@ export function ResumeBuilderRefactored() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-6 lg:flex-row xl:gap-8">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="-mx-6 -mt-6 mb-4 flex flex-wrap items-center gap-3 border-b border-line bg-surface px-6 py-3">
+        <h1 className="text-heading-lg text-ink-primary">
+          {resumeData.personalInfo.fullName || 'Untitled Resume'}
+        </h1>
+        <span className="flex items-center gap-1.5 text-caption text-ink-muted">
+          <span className={`h-2 w-2 rounded-full ${isSaving ? 'animate-pulse bg-warning' : 'bg-success'}`} />
+          {isSaving ? 'Saving…' : 'Saved'}
+        </span>
+      </div>
+
+    <div className="builder-layout flex-1 min-h-0 gap-6">
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -130,7 +140,7 @@ export function ResumeBuilderRefactored() {
       />
 
       {/* Left Panel - Collapsible Sections */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:max-w-[52%]">
+      <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
         <ActionToolbar
           onImport={triggerFileSelect}
           onSave={handleManualSave}
@@ -156,27 +166,22 @@ export function ResumeBuilderRefactored() {
       </div>
 
       {/* Right Panel - Live Preview */}
-      <div className="glass-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] lg:max-w-[48%]">
-        {/* Preview Header */}
-        <div className="flex items-center justify-between bg-card/48 p-4 md:p-5 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-            <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Live Preview</span>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-7 text-xs hover:bg-white/10"
+      <div className="preview-panel flex min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-subtle">
+        <div className="flex shrink-0 items-center justify-between border-b border-line bg-surface px-4 py-3">
+          <span className="text-label uppercase text-ink-muted">Live Preview</span>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setShowFullPreview(true)}
             aria-label="Expand preview"
           >
-            <Maximize2 className="h-3 w-3 mr-1" /> Expand
+            <Maximize2 className="mr-1 h-3 w-3" />
+            Expand
           </Button>
         </div>
 
-        {/* A4 Preview Container */}
-        <div className="flex flex-1 min-h-0 items-start justify-center overflow-auto bg-[#525659] p-5 md:p-6 xl:p-8 scrollbar-thin">
-          <div className="w-full max-w-[520px] shadow-2xl">
+        <div className="flex flex-1 min-h-0 items-start justify-center overflow-auto p-6 scrollbar-thin">
+          <div className="w-full max-w-[520px] rounded-lg bg-white p-8 shadow-lg">
             <ResumePreview ref={previewRef} resumeData={resumeData} />
           </div>
         </div>
@@ -184,24 +189,24 @@ export function ResumeBuilderRefactored() {
 
       {/* Full Preview Dialog */}
       <Dialog open={showFullPreview} onOpenChange={setShowFullPreview}>
-        <DialogContent className="flex h-[95vh] max-w-[min(95vw,980px)] flex-col overflow-hidden border-white/10 bg-[#525659] p-0">
-          <DialogHeader className="flex-shrink-0 border-b border-white/10 bg-black/40 p-5">
+        <DialogContent className="flex h-[95vh] max-w-[min(95vw,980px)] flex-col overflow-hidden bg-subtle p-0">
+          <DialogHeader className="shrink-0 border-b border-line bg-surface p-5">
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-white">Full Resume Preview</DialogTitle>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={handleDownloadPDF} disabled={isDownloading} className="bg-primary hover:bg-primary/90">
-                  <Download className="h-4 w-4 mr-2" /> Download PDF
-                </Button>
-              </div>
+              <DialogTitle>Full Resume Preview</DialogTitle>
+              <Button size="sm" onClick={handleDownloadPDF} disabled={isDownloading}>
+                <Download className="mr-2 h-4 w-4" />
+                Download PDF
+              </Button>
             </div>
           </DialogHeader>
-          <div className="flex-1 min-h-0 overflow-auto p-4 md:p-6">
-            <div className="mx-auto shadow-2xl" style={{ maxWidth: '210mm' }}>
+          <div className="min-h-0 flex-1 overflow-auto p-6">
+            <div className="mx-auto rounded-lg bg-white p-8 shadow-lg" style={{ maxWidth: '210mm' }}>
               <ResumePreview ref={fullPreviewRef} resumeData={resumeData} forPdf />
             </div>
           </div>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   )
 }

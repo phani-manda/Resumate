@@ -25,21 +25,21 @@ export function ProjectsSection({
       {projects.map((project) => (
         <div
           key={project.id}
-          className="surface-soft group relative rounded-[22px] p-4 transition-all duration-150 ease-out hover:-translate-y-0.5"
+          className="group relative rounded-lg border border-line bg-subtle p-4 transition-colors hover:border-line-strong"
         >
           <div className="grid gap-3">
             <Input
               placeholder="Project name"
               value={project.name}
               onChange={(event) => onUpdate(project.id, 'name', event.target.value)}
-              className="h-10 bg-card/80"
+              className="h-10"
               aria-label="Project name"
             />
             <Textarea
               placeholder="Describe the project impact and what you built..."
               value={project.description}
               onChange={(event) => onUpdate(project.id, 'description', event.target.value)}
-              className="min-h-[96px] bg-card/80"
+              className="min-h-[96px]"
               aria-label="Project description"
             />
             <div className="grid gap-3 md:grid-cols-2">
@@ -56,14 +56,14 @@ export function ProjectsSection({
                       .filter(Boolean)
                   )
                 }
-                className="h-10 bg-card/80"
+                className="h-10"
                 aria-label="Project technologies"
               />
               <Input
                 placeholder="Project link"
                 value={project.link ?? ''}
                 onChange={(event) => onUpdate(project.id, 'link', event.target.value)}
-                className="h-10 bg-card/80"
+                className="h-10"
                 aria-label="Project link"
               />
             </div>
@@ -83,7 +83,7 @@ export function ProjectsSection({
         onClick={onAdd}
         variant="outline"
         size="sm"
-        className="w-full rounded-2xl border-dashed"
+        className="w-full border-dashed"
       >
         <Plus className="mr-2 h-4 w-4" /> Add Project
       </Button>

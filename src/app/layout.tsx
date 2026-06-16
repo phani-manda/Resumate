@@ -56,7 +56,7 @@ export default function RootLayout({
         <body className={outfit.className}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
+            defaultTheme="system"
             enableSystem
             disableTransitionOnChange
           >
@@ -75,11 +75,12 @@ export default function RootLayout({
               {children}
             </main>
             
-            <Toaster 
+            <Toaster
+              richColors
               position="bottom-right"
               toastOptions={{
                 className:
-                  "border border-transparent bg-[hsl(var(--card))]/92 text-[hsl(var(--foreground))] shadow-[var(--shadow-md)] backdrop-blur-2xl",
+                  "border border-line bg-surface text-ink-primary shadow-elevated",
                 duration: 4000,
               }}
               icons={{

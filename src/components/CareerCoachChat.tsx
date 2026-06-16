@@ -3,22 +3,19 @@
 import { useRef, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Send, Bot, User, Sparkles, AlertCircle, Copy, ThumbsUp, ThumbsDown } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
+import { Textarea } from '@/components/ui/Textarea'
+import { Send, AlertCircle, Copy, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/ScrollArea'
 import { Alert, AlertDescription } from '@/components/ui/Alert'
-import { useChat } from 'ai/react'
+import { useChat } from '@ai-sdk/react'
 import { toast } from 'sonner'
 import ReactMarkdown from 'react-markdown'
 
-const SUGGESTED_QUESTIONS = [
+const STARTER_PROMPTS = [
+  'Review my resume bullet points',
+  'Help me prepare for a technical interview',
+  'What skills should I highlight for this role?',
   'How can I improve my resume summary?',
-  'What skills should I highlight for a tech role?',
-  'How do I describe my achievements better?',
-  'Should I include a cover letter?',
-  'How far back should my work history go?',
 ]
 
 export function CareerCoachChat() {
@@ -96,7 +93,7 @@ export function CareerCoachChat() {
   }, [setMessages])
 
   const handleSendQuestion = (question: string) => {
-    handleInputChange({ target: { value: question } } as React.ChangeEvent<HTMLInputElement>)
+    handleInputChange({ target: { value: question } } as React.ChangeEvent<HTMLTextAreaElement>)
     
     setTimeout(() => {
       const form = document.querySelector('form')
@@ -140,244 +137,164 @@ export function CareerCoachChat() {
     }
   }
 
+  const showStarters =
+    messages.length <= 1 && messages[0]?.role === 'assistant' && !isLoading
+
   return (
-    <div className="grid h-full grid-cols-1 grid-rows-1 gap-6 overflow-hidden lg:grid-cols-3 xl:gap-8">
-      {/* Main Chat Panel - Fixed height with internal scroll */}
-      <div className="lg:col-span-2 min-h-0 overflow-hidden">
-        <Card className="futuristic-card flex h-full flex-col overflow-hidden rounded-[30px]">
-          <CardHeader className="flex-shrink-0 bg-card/48 px-7 py-6">
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-primary" />
-              AI Career Coach
-            </CardTitle>
-            <CardDescription>Get personalized career advice and resume tips</CardDescription>
-          </CardHeader>
-          
-          <CardContent className="flex min-h-0 flex-1 flex-col p-0">
-            {/* Error Alert - Fixed */}
-            {error && (
-              <div className="flex-shrink-0">
-                <Alert variant="destructive" className="mx-6 mt-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {error.message === 'Unauthorized' 
-                      ? 'Please sign in to use the career coach.' 
-                      : 'Failed to connect to AI service. Please try again.'}
-                  </AlertDescription>
-                </Alert>
-              </div>
-            )}
-            
-            {/* Scrollable Messages Area - Only this scrolls */}
-            <div className="flex-1 min-h-0 overflow-hidden" ref={scrollAreaRef}>
-              <ScrollArea className="h-full">
-                <div className="space-y-5 px-7 py-6">
+    <div className="flex h-[calc(100vh-7rem)] flex-col">
+      <header className="mb-4 shrink-0">
+        <h1 className="text-heading-xl text-ink-primary">Career Coach</h1>
+        <p className="text-body-sm text-ink-secondary">Your AI-powered career advisor</p>
+      </header>
+
+      <div className="flex min-h-0 flex-1 gap-6">
+        <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-line bg-surface shadow-card">
+          {error && (
+            <Alert variant="destructive" className="m-4 shrink-0">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {error.message === 'Unauthorized'
+                  ? 'Please sign in to use the career coach.'
+                  : 'Failed to connect to AI service. Please try again.'}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="min-h-0 flex-1 overflow-hidden" ref={scrollAreaRef}>
+            <ScrollArea className="h-full">
+              <div className="space-y-4 p-4">
+                {showStarters && (
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {STARTER_PROMPTS.map((prompt) => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        onClick={() => handleSendQuestion(prompt)}
+                        className="rounded-xl border border-line bg-subtle p-3 text-left text-body-sm text-ink-primary transition-colors hover:border-line-strong hover:bg-surface"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <AnimatePresence>
                   {messages.map((message) => (
                     <motion.div
                       key={message.id}
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className={`flex gap-3 ${
-                        message.role === 'user' ? 'justify-end' : 'justify-start'
-                      }`}
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      {message.role === 'assistant' && (
-                        <Avatar className="h-8 w-8 border-2 border-primary">
-                          <AvatarFallback className="bg-primary/10">
-                            <Bot className="h-4 w-4 text-primary" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
                       <div
-                        className={`group relative max-w-[80%] rounded-[22px] p-4 ${
+                        className={`group relative max-w-[85%] px-4 py-3 ${
                           message.role === 'user'
-                            ? 'bg-orange-500 text-white shadow-[0_0_24px_-12px_rgba(255,122,26,0.7)]'
-                            : 'surface-soft text-foreground'
+                            ? 'rounded-xl rounded-br-sm bg-accent-subtle text-accent-text'
+                            : 'rounded-xl rounded-bl-sm border border-line bg-surface text-ink-primary'
                         }`}
                       >
-                        <div className="prose prose-sm max-w-none whitespace-pre-wrap text-inherit prose-headings:text-inherit prose-p:text-inherit prose-strong:text-inherit prose-code:text-inherit">
+                        <div className="prose prose-sm max-w-none text-inherit prose-p:my-1">
                           <ReactMarkdown>{message.content}</ReactMarkdown>
                         </div>
-                        <div className="mt-3 flex items-center justify-between gap-3">
-                          <span className="text-[10px] uppercase tracking-[0.18em] opacity-60">
-                            {message.role === 'user' ? 'You' : 'Coach'}
-                          </span>
-                          <div className="flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 rounded-full bg-black/10 hover:bg-black/20"
-                              onClick={() => handleCopyMessage(message.id, message.content)}
-                            >
-                              <Copy className="h-3.5 w-3.5" />
-                            </Button>
-                            {message.role === 'assistant' && (
-                              <>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className={`h-7 w-7 rounded-full bg-black/10 hover:bg-black/20 ${
-                                    reactionState[message.id] === 'thumbsUp' ? 'text-orange-300' : ''
-                                  }`}
-                                  onClick={() => handleReaction(message.id, 'thumbsUp')}
-                                >
-                                  <ThumbsUp className="h-3.5 w-3.5" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className={`h-7 w-7 rounded-full bg-black/10 hover:bg-black/20 ${
-                                    reactionState[message.id] === 'thumbsDown' ? 'text-red-300' : ''
-                                  }`}
-                                  onClick={() => handleReaction(message.id, 'thumbsDown')}
-                                >
-                                  <ThumbsDown className="h-3.5 w-3.5" />
-                                </Button>
-                              </>
-                            )}
-                          </div>
+                        <div className="mt-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleCopyMessage(message.id, message.content)}
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
+                          {message.role === 'assistant' && (
+                            <>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => handleReaction(message.id, 'thumbsUp')}
+                              >
+                                <ThumbsUp className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => handleReaction(message.id, 'thumbsDown')}
+                              >
+                                <ThumbsDown className="h-3.5 w-3.5" />
+                              </Button>
+                            </>
+                          )}
                         </div>
                         {copiedMessageId === message.id && (
-                          <div className="mt-2 text-[11px] font-medium text-orange-300">Copied</div>
+                          <p className="mt-1 text-caption text-accent-text">Copied</p>
                         )}
                       </div>
-                      {message.role === 'user' && (
-                        <Avatar className="h-8 w-8 border-2 border-muted">
-                          <AvatarFallback>
-                            <User className="h-4 w-4" />
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
                     </motion.div>
                   ))}
                 </AnimatePresence>
-                
+
                 {isLoading && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex gap-3"
-                  >
-                    <Avatar className="h-8 w-8 border-2 border-primary">
-                      <AvatarFallback className="bg-primary/10">
-                        <Bot className="h-4 w-4 text-primary" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="rounded-2xl bg-card/72 p-4 shadow-[var(--shadow-sm)]">
-                      <div className="flex gap-1">
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
-                          className="h-2 w-2 rounded-full bg-primary"
-                        />
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
-                          className="h-2 w-2 rounded-full bg-primary"
-                        />
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
-                          className="h-2 w-2 rounded-full bg-primary"
-                        />
+                  <div className="flex justify-start">
+                    <div className="rounded-xl rounded-bl-sm border border-line bg-surface px-4 py-3">
+                      <div className="flex gap-1.5">
+                        {[0, 0.15, 0.3].map((delay) => (
+                          <motion.span
+                            key={delay}
+                            className="h-2 w-2 rounded-full bg-ink-muted"
+                            animate={{ y: [0, -4, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay }}
+                          />
+                        ))}
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 )}
               </div>
-              </ScrollArea>
-            </div>
-            
-            {/* Fixed Input Area - Stays at bottom */}
-            <div className="flex-shrink-0 bg-card/42 px-7 py-5">
-              <form onSubmit={handleSubmit} className="flex w-full gap-2">
-                <Input
-                  placeholder="Ask me anything about your career..."
-                  value={input}
-                  onChange={handleInputChange}
-                  disabled={isLoading}
-                  className="flex-1"
-                />
-                <Button type="submit" disabled={!input.trim() || isLoading}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </form>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {SUGGESTED_QUESTIONS.slice(0, 3).map((question) => (
-                  <Button
-                    key={question}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full bg-card/72"
-                    onClick={() => handleSendQuestion(question)}
-                  >
-                    {question}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </ScrollArea>
+          </div>
 
-      {/* Right Sidebar - Fixed with internal scroll */}
-      <div className="flex flex-col gap-6 overflow-hidden min-h-0">
-        {/* Quick Tips Card */}
-        <Card className="futuristic-card flex-shrink-0 rounded-[30px]">
-          <CardHeader className="px-7 py-6">
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-orange-400" />
-              Quick Tips
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 px-7 pb-7">
-            <div className="rounded-2xl bg-card/72 p-4 shadow-[var(--shadow-sm)]">
-              <h4 className="mb-1 text-sm font-medium">Use Action Verbs</h4>
-              <p className="text-xs text-muted-foreground">
-                Start bullet points with strong verbs like "Led", "Developed", "Increased"
-              </p>
+          <form
+            onSubmit={handleSubmit}
+            className="shrink-0 border-t border-line p-4"
+          >
+            <div className="flex items-end gap-3 rounded-xl border border-line-strong bg-surface px-4 py-3">
+              <Textarea
+                placeholder="Type a message..."
+                value={input}
+                onChange={handleInputChange}
+                disabled={isLoading}
+                rows={1}
+                className="min-h-[24px] max-h-32 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    if (input.trim()) handleSubmit(e as unknown as React.FormEvent)
+                  }
+                }}
+              />
+              <Button
+                type="submit"
+                variant={input.trim() ? 'action' : 'ghost'}
+                size="icon"
+                disabled={!input.trim() || isLoading}
+                aria-label="Send message"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
             </div>
-            <div className="rounded-2xl bg-card/72 p-4 shadow-[var(--shadow-sm)]">
-              <h4 className="mb-1 text-sm font-medium">Quantify Results</h4>
-              <p className="text-xs text-muted-foreground">
-                Include numbers, percentages, and metrics to show impact
-              </p>
-            </div>
-            <div className="rounded-2xl bg-card/72 p-4 shadow-[var(--shadow-sm)]">
-              <h4 className="mb-1 text-sm font-medium">Tailor Content</h4>
-              <p className="text-xs text-muted-foreground">
-                Customize your resume for each job application
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+          </form>
+        </div>
 
-        {/* Suggested Questions Card - Scrollable */}
-        <Card className="futuristic-card flex min-h-0 flex-1 flex-col rounded-[30px]">
-          <CardHeader className="flex-shrink-0 px-7 py-6">
-            <CardTitle>Suggested Questions</CardTitle>
-          </CardHeader>
-          <ScrollArea className="flex-1">
-            <CardContent className="space-y-3 px-7 pb-7">
-              {SUGGESTED_QUESTIONS.map((question, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="h-auto w-full justify-start rounded-2xl bg-card/72 px-4 py-4 text-left text-foreground shadow-[var(--shadow-sm)] hover:bg-orange-500/10"
-                  onClick={() => handleSendQuestion(question)}
-                >
-                  <span className="text-sm">{question}</span>
-                </Button>
-              ))}
-            </CardContent>
-          </ScrollArea>
-        </Card>
+        <aside className="hidden w-56 shrink-0 lg:block">
+          <p className="mb-3 text-label uppercase text-ink-muted">History</p>
+          <p className="text-body-sm text-ink-muted">
+            Past sessions appear here as you chat.
+          </p>
+        </aside>
       </div>
     </div>
   )

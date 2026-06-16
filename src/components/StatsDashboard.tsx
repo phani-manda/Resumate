@@ -1,252 +1,285 @@
 "use client"
 
+import Link from "next/link"
 import { motion, useReducedMotion } from "framer-motion"
-import { TrendingUp, FileText, Eye, Download, Target, Award } from "lucide-react"
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import {
+  FileText,
+  Sparkles,
+  Target,
+  MessageSquare,
+  Pencil,
+  Download,
+  TrendingUp,
+  TrendingDown,
+  Loader2,
+} from "lucide-react"
+import { Button } from "@/components/ui/Button"
+import { Badge } from "@/components/ui/Badge"
+import { useDashboardStats } from "@/hooks/useDashboardStats"
+import { fadeUp, staggerContainer } from "@/lib/animation"
 import { cn } from "@/lib/utils"
+import useSWR from "swr"
 
-const viewsData = [
-  { month: "Jan", views: 245 },
-  { month: "Feb", views: 389 },
-  { month: "Mar", views: 521 },
-  { month: "Apr", views: 678 },
-  { month: "May", views: 892 },
-  { month: "Jun", views: 1034 },
-]
+interface ResumeSummary {
+  id: string
+  title: string
+  updatedAt: string
+  atsScore?: number | null
+}
 
-const skillsData = [
-  { name: "Technical Skills", value: 85 },
-  { name: "Soft Skills", value: 75 },
-  { name: "Leadership", value: 65 },
-  { name: "Communication", value: 90 },
-]
+const resumesFetcher = (url: string) =>
+  fetch(url).then((res) => {
+    if (!res.ok) throw new Error("Failed to fetch resumes")
+    return res.json()
+  })
 
-const optimizationData = [
-  { category: "ATS Compatibility", score: 92 },
-  { category: "Keyword Match", score: 78 },
-  { category: "Format Quality", score: 95 },
-  { category: "Content Depth", score: 88 },
-  { category: "Achievement Focus", score: 82 },
-]
+function scoreBadgeVariant(score: number): "danger" | "warning" | "success" {
+  if (score >= 80) return "success"
+  if (score >= 60) return "warning"
+  return "danger"
+}
 
-const skillDistribution = [
-  { name: "Technical", value: 40 },
-  { name: "Management", value: 25 },
-  { name: "Communication", value: 20 },
-  { name: "Other", value: 15 },
-]
-
-const COLORS = ["#ff7a1a", "#ffb56b", "#9a5a2e", "#f5d0a1"]
-
-function BentoCard({ children, className, delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) {
+function StatCard({
+  label,
+  value,
+  trend,
+  trendUp,
+  delay = 0,
+}: {
+  label: string
+  value: string
+  trend?: string
+  trendUp?: boolean
+  delay?: number
+}) {
   const reduceMotion = useReducedMotion()
 
   return (
     <motion.div
-      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: reduceMotion ? 0 : 0.28, delay: reduceMotion ? 0 : delay }}
-      className={cn("glass-panel gpu-lite relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-[30px] p-7 xl:p-8 group", className)}
+      transition={{ duration: 0.35, delay: reduceMotion ? 0 : delay }}
+      className="rounded-xl border border-line bg-surface p-5 shadow-card"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-      {children}
+      <p className="mb-1 text-label uppercase text-ink-muted">{label}</p>
+      <p className="text-display-sm font-bold text-ink-primary">{value}</p>
+      {trend && (
+        <p
+          className={cn(
+            "mt-2 flex items-center gap-1 text-caption",
+            trendUp ? "text-success" : "text-danger"
+          )}
+        >
+          {trendUp ? (
+            <TrendingUp className="h-3 w-3" />
+          ) : (
+            <TrendingDown className="h-3 w-3" />
+          )}
+          {trend}
+        </p>
+      )}
     </motion.div>
   )
 }
 
 export function StatsDashboard() {
-  const reduceMotion = useReducedMotion()
+  const { stats, isLoading, isError } = useDashboardStats()
+  const { data: resumesRaw, isLoading: resumesLoading } = useSWR<ResumeSummary[]>(
+    "/api/resumes",
+    resumesFetcher
+  )
+
+  const resumes = Array.isArray(resumesRaw) ? resumesRaw : []
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[320px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+      </div>
+    )
+  }
+
+  if (isError || !stats) {
+    return (
+      <div className="rounded-xl border border-line bg-surface p-8 text-center">
+        <p className="text-body-md text-ink-secondary">Could not load dashboard stats.</p>
+      </div>
+    )
+  }
+
+  const avgScoreLabel = stats.avgScore > 0 ? `${stats.avgScore}%` : "—"
+  const scoreTrend =
+    stats.scoreImprovement !== 0
+      ? `${stats.scoreImprovement > 0 ? "↑" : "↓"} ${Math.abs(stats.scoreImprovement)}pts`
+      : undefined
 
   return (
-    <div className="grid grid-cols-1 gap-6 pb-8 md:grid-cols-2 lg:grid-cols-4 xl:gap-8">
-      {/* Overview Stats - Top Row */}
-      <BentoCard delay={0.1}>
-        <div className="flex justify-between items-start mb-4">
-          <div className="rounded-2xl bg-orange-500/15 p-3 text-orange-300">
-            <Eye className="h-6 w-6" />
-          </div>
-          <span className="flex items-center gap-1 rounded-full bg-orange-500/10 px-2 py-1 text-xs font-medium text-orange-300">
-            <TrendingUp className="h-3 w-3" /> +16%
-          </span>
-        </div>
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="mb-1 text-4xl font-bold text-foreground">1,034</h3>
-          <p className="text-sm text-muted-foreground">Total Profile Views</p>
+          <h1 className="text-display-sm font-bold text-ink-primary">Dashboard</h1>
+          <p className="mt-1 text-body-md text-ink-secondary">
+            Your resume activity and optimization overview
+          </p>
         </div>
-      </BentoCard>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="action" asChild>
+            <Link href="/builder">New Resume</Link>
+          </Button>
+          <Button variant="default" asChild>
+            <Link href="/optimizer">Optimize Existing</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/coach">Ask Career Coach</Link>
+          </Button>
+        </div>
+      </div>
 
-      <BentoCard delay={0.2}>
-        <div className="flex justify-between items-start mb-4">
-          <div className="rounded-2xl bg-orange-500/15 p-3 text-orange-300">
-            <Download className="h-6 w-6" />
-          </div>
-          <span className="flex items-center gap-1 rounded-full bg-orange-500/10 px-2 py-1 text-xs font-medium text-orange-300">
-            <TrendingUp className="h-3 w-3" /> +23%
-          </span>
-        </div>
-        <div>
-          <h3 className="mb-1 text-4xl font-bold text-foreground">234</h3>
-          <p className="text-sm text-muted-foreground">Resume Downloads</p>
-        </div>
-      </BentoCard>
+      <motion.div
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <StatCard
+          label="Total Resumes"
+          value={String(stats.resumesCount)}
+          trend={stats.resumesCount > 0 ? "Active workspace" : "Create your first"}
+          trendUp
+          delay={0}
+        />
+        <StatCard
+          label="Optimizations Run"
+          value={String(stats.optimizationsCount)}
+          trend={
+            stats.recentOptimizations > 0
+              ? `↑ ${stats.recentOptimizations} this month`
+              : "Run your first scan"
+          }
+          trendUp={stats.recentOptimizations > 0}
+          delay={0.05}
+        />
+        <StatCard
+          label="Avg ATS Score"
+          value={avgScoreLabel}
+          trend={scoreTrend}
+          trendUp={stats.scoreImprovement >= 0}
+          delay={0.1}
+        />
+        <StatCard
+          label="Coach Chats"
+          value={String(stats.chatSessionsCount)}
+          trend={stats.chatSessionsCount > 0 ? "Sessions saved" : "Start a conversation"}
+          trendUp={stats.chatSessionsCount > 0}
+          delay={0.15}
+        />
+      </motion.div>
 
-      <BentoCard delay={0.3}>
-        <div className="flex justify-between items-start mb-4">
-          <div className="rounded-2xl bg-orange-500/15 p-3 text-orange-300">
-            <Target className="h-6 w-6" />
-          </div>
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-heading-xl text-ink-primary">Recent Resumes</h2>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/builder">View all</Link>
+          </Button>
         </div>
-        <div>
-          <h3 className="mb-1 text-4xl font-bold text-foreground">87<span className="text-lg font-normal text-muted-foreground">/100</span></h3>
-          <p className="text-sm text-muted-foreground">Avg. ATS Score</p>
-        </div>
-      </BentoCard>
 
-      <BentoCard delay={0.4}>
-        <div className="flex justify-between items-start mb-4">
-          <div className="rounded-2xl bg-orange-500/15 p-3 text-orange-300">
-            <Award className="h-6 w-6" />
-          </div>
-        </div>
-        <div>
-          <h3 className="mb-1 text-4xl font-bold text-foreground">4.8<span className="text-lg font-normal text-muted-foreground">/5.0</span></h3>
-          <p className="text-sm text-muted-foreground">AI Quality Rating</p>
-        </div>
-      </BentoCard>
-
-      {/* Main Charts - Middle Section */}
-      <BentoCard className="min-h-[440px] md:col-span-2 lg:col-span-3 xl:min-h-[480px]" delay={0.5}>
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-foreground">Views Overview</h3>
-          <p className="text-sm text-muted-foreground">Monthly traffic analysis</p>
-        </div>
-        <div className="flex-1 w-full min-h-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={viewsData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-              <XAxis dataKey="month" stroke="#71717a" tickLine={false} axisLine={false} dy={10} />
-              <YAxis stroke="#71717a" tickLine={false} axisLine={false} dx={-10} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#18181b",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "12px",
-                  color: "#fff"
-                }}
+        {resumesLoading ? (
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-36 w-64 shrink-0 animate-pulse rounded-xl bg-subtle"
               />
-              <Line
-                type="monotone"
-                dataKey="views"
-                stroke="#ff7a1a"
-                strokeWidth={4}
-                dot={{ fill: "#18181b", stroke: "#ff7a1a", strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 8, fill: "#ff7a1a" }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </BentoCard>
-
-      <BentoCard className="min-h-[440px] md:col-span-1 xl:min-h-[480px]" delay={0.6}>
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-foreground">Skill Mix</h3>
-          <p className="text-sm text-muted-foreground">Distribution by category</p>
-        </div>
-        <div className="flex-1 w-full min-h-0 relative">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={skillDistribution}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {skillDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(0,0,0,0)" />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#18181b",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "12px",
-                  color: "#fff"
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center">
-              <span className="text-3xl font-bold text-foreground">4</span>
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">Types</p>
-            </div>
+            ))}
           </div>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {skillDistribution.map((skill, i) => (
-            <div key={skill.name} className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-              {skill.name}
-            </div>
-          ))}
-        </div>
-      </BentoCard>
+        ) : resumes.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-line p-10 text-center">
+            <FileText className="mx-auto mb-3 h-10 w-10 text-ink-muted" />
+            <p className="text-body-md text-ink-secondary">No resumes yet</p>
+            <Button variant="action" className="mt-4" asChild>
+              <Link href="/builder">Create Resume</Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin">
+            {resumes.slice(0, 8).map((resume) => {
+              const score = resume.atsScore ?? stats.latestScore
+              return (
+                <div
+                  key={resume.id}
+                  className="w-64 shrink-0 rounded-xl border border-line bg-surface p-4 shadow-card transition-all hover:cursor-pointer hover:border-line-strong hover:shadow-elevated"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="truncate text-heading-md text-ink-primary">
+                      {resume.title || "Untitled Resume"}
+                    </h3>
+                    {score > 0 && (
+                      <Badge variant={scoreBadgeVariant(score)}>{score}%</Badge>
+                    )}
+                  </div>
+                  <p className="mt-1 text-caption text-ink-muted">
+                    Edited {new Date(resume.updatedAt).toLocaleDateString()}
+                  </p>
+                  <div className="mt-4 flex gap-1">
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link href={`/builder?id=${resume.id}`} aria-label="Edit">
+                        <Pencil className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link href={`/optimizer?resume=${resume.id}`} aria-label="Optimize">
+                        <Sparkles className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button variant="ghost" size="icon" aria-label="Export">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
 
-      {/* Bottom Section */}
-      <BentoCard className="min-h-[320px] md:col-span-2 xl:min-h-[340px]" delay={0.7}>
-        <div className="mb-6 flex items-center justify-between">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Link
+          href="/builder"
+          className="flex items-center gap-4 rounded-xl border border-line bg-surface p-5 shadow-card transition-all hover:border-line-strong hover:shadow-elevated"
+        >
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent-subtle">
+            <FileText className="h-5 w-5 text-accent-text" />
+          </div>
           <div>
-            <h3 className="text-lg font-semibold text-foreground">Optimization Details</h3>
-            <p className="text-sm text-muted-foreground">Category performance breakdown</p>
+            <p className="text-heading-md text-ink-primary">Resume Builder</p>
+            <p className="text-caption text-ink-muted">Edit sections & preview</p>
           </div>
-          <Award className="text-orange-400 h-6 w-6" />
-        </div>
-        <div className="flex-1 w-full min-h-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={optimizationData} layout="vertical" barSize={20}>
-              <XAxis type="number" hide />
-              <YAxis dataKey="category" type="category" width={100} tick={{ fill: '#d4d4d8', fontSize: 12 }} tickLine={false} axisLine={false} />
-              <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                contentStyle={{
-                  backgroundColor: "#18181b",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "12px",
-                  color: "#fff"
-                }}
-              />
-              <Bar dataKey="score" fill="#ff7a1a" radius={[0, 4, 4, 0]} background={{ fill: 'rgba(255,255,255,0.05)' }} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </BentoCard>
-
-      <BentoCard className="min-h-[320px] md:col-span-2 xl:min-h-[340px]" delay={0.8}>
-        <div className="mb-6">
-            <h3 className="text-lg font-semibold text-foreground">Skill Proficiency</h3>
-            <p className="text-sm text-muted-foreground">AI evaluated mastery levels</p>
-        </div>
-        <div className="space-y-6">
-          {skillsData.map((skill) => (
-            <div key={skill.name}>
-              <div className="flex justify-between mb-2 text-sm">
-                <span className="text-foreground">{skill.name}</span>
-                <span className="text-muted-foreground">{skill.value}%</span>
-              </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                <motion.div
-                  initial={reduceMotion ? false : { width: 0 }}
-                  whileInView={{ width: `${skill.value}%` }}
-                  transition={{ duration: reduceMotion ? 0 : 0.6, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-orange-500 to-orange-300 rounded-full"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </BentoCard>
+        </Link>
+        <Link
+          href="/optimizer"
+          className="flex items-center gap-4 rounded-xl border border-line bg-surface p-5 shadow-card transition-all hover:border-line-strong hover:shadow-elevated"
+        >
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-action-subtle">
+            <Target className="h-5 w-5 text-action-text" />
+          </div>
+          <div>
+            <p className="text-heading-md text-ink-primary">ATS Optimizer</p>
+            <p className="text-caption text-ink-muted">Match job descriptions</p>
+          </div>
+        </Link>
+        <Link
+          href="/coach"
+          className="flex items-center gap-4 rounded-xl border border-line bg-surface p-5 shadow-card transition-all hover:border-line-strong hover:shadow-elevated"
+        >
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-info-subtle">
+            <MessageSquare className="h-5 w-5 text-info-text" />
+          </div>
+          <div>
+            <p className="text-heading-md text-ink-primary">Career Coach</p>
+            <p className="text-caption text-ink-muted">AI career guidance</p>
+          </div>
+        </Link>
+      </div>
     </div>
   )
 }

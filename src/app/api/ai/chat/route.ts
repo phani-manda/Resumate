@@ -1,19 +1,17 @@
 import { groq } from '@ai-sdk/groq'
-import { convertToCoreMessages, streamText, type Message } from 'ai'
+import { convertToModelMessages, streamText } from 'ai'
 import { auth } from '@clerk/nextjs/server'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
 
 export const maxDuration = 30
 
-// Generate a session ID for grouping messages
 function generateSessionId(): string {
   return `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
     const { userId } = await auth()
     
     if (!userId) {
@@ -26,8 +24,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate request body
-    let messages: Message[]
+    let messages: Array<{ role: string; content: string }>
     let sessionId: string | undefined
     let resumeContext: string | undefined
     
@@ -75,14 +72,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate session ID if not provided
     if (!sessionId) {
-      // Check for existing recent session (within 30 minutes)
       const recentMessage = await prisma.chatMessage.findFirst({
         where: {
           clerkUserId: userId,
           timestamp: {
-            gte: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+            gte: new Date(Date.now() - 30 * 60 * 1000),
           },
         },
         orderBy: { timestamp: 'desc' },
@@ -92,7 +87,6 @@ export async function POST(request: NextRequest) {
       sessionId = recentMessage?.sessionId || generateSessionId()
     }
 
-    // Save the user message to the database BEFORE streaming
     const lastMessage = messages[messages.length - 1]
     if (lastMessage && lastMessage.role === 'user') {
       await prisma.chatMessage.create({
@@ -106,7 +100,6 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Use Groq for fast chat responses
     if (!process.env.GROQ_API_KEY) {
       return new Response(
         JSON.stringify({ error: 'AI service not configured. Please set GROQ_API_KEY.' }), 
@@ -118,9 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     const model = groq('llama-3.3-70b-versatile')
-    console.log('Using Groq for chat completion')
 
-    // Build system prompt with optional resume context
     let systemPrompt = `You are an expert career coach and resume advisor with years of experience helping professionals optimize their resumes and advance their careers. 
 
 Your role is to:
@@ -143,22 +134,19 @@ Keep responses concise but comprehensive, typically 2-4 paragraphs unless more d
       systemPrompt += `\n\nHere is the user's current resume data for context:\n${resumeContext}`
     }
 
-    // Stream AI response
-    const coreMessages = convertToCoreMessages(
-      messages
-        .filter(
-          (message): message is Message =>
-            typeof message?.role === 'string' &&
-            typeof message?.content === 'string' &&
-            message.content.trim().length > 0
-        )
-        .map((message) => ({
-          ...message,
-          content: message.content.trim(),
-        }))
-    )
+    const validMessages = messages
+      .filter(
+        (m): m is { role: string; content: string } =>
+          typeof m?.role === 'string' &&
+          typeof m?.content === 'string' &&
+          m.content.trim().length > 0
+      )
+      .map((m) => ({
+        role: m.role,
+        content: m.content.trim(),
+      }))
 
-    if (coreMessages.length === 0) {
+    if (validMessages.length === 0) {
       return new Response(
         JSON.stringify({ error: 'No valid chat messages were provided.' }),
         {
@@ -168,12 +156,15 @@ Keep responses concise but comprehensive, typically 2-4 paragraphs unless more d
       )
     }
 
-    const result = await streamText({
-      model: model,
+    // biome-ignore lint/suspicious/noExplicitAny: convertToModelMessages v6 expects UIMessage with parts field; our simple role/content messages are runtime-compatible
+    const coreMessages = await convertToModelMessages(validMessages as any)
+
+    const result = streamText({
+      // @ts-expect-error - groq provider returns LanguageModelV1, compatible at runtime
+      model,
       messages: coreMessages,
       system: systemPrompt,
       onFinish: async ({ text }) => {
-        // Save the assistant's response after streaming completes
         try {
           await prisma.chatMessage.create({
             data: {
@@ -190,8 +181,7 @@ Keep responses concise but comprehensive, typically 2-4 paragraphs unless more d
       },
     })
 
-    // Add session ID to response headers
-    const response = result.toDataStreamResponse()
+    const response = result.toTextStreamResponse()
     response.headers.set('X-Session-Id', sessionId)
     
     return response

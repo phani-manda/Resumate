@@ -703,7 +703,7 @@ export function resumeListKey(userId: string) {
 
 Add to env: UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
 
-RATE LIMITING — update src/middleware.ts (install @upstash/ratelimit):
+RATE LIMITING — update src/proxy.ts (install @upstash/ratelimit):
 
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
@@ -1004,7 +1004,7 @@ CLERK CONFIGURATION HARDENING — implement all:
 3. Create Clerk webhook for user.created event → auto-provision user preferences row in DB
 4. Create Clerk webhook for user.deleted event → GDPR cascade delete all user data
 5. Add user roles via Clerk metadata: { plan: 'free' | 'pro' | 'admin' }
-6. Protect admin routes in middleware.ts: check metadata.plan === 'admin' before allowing access
+6. Protect admin routes in proxy.ts: check metadata.plan === 'admin' before allowing access
 7. Rate limit sign-up endpoint: prevent spam account creation via IP-based limiting
 
 CLERK WEBHOOK ENDPOINT — FILE: src/app/api/webhooks/clerk/route.ts:
@@ -1274,7 +1274,7 @@ Files to test:
 - src/app/api/resumes/route.ts — CRUD operations, auth checks, validation errors
 - src/app/api/ai/optimize/route.ts — AI response handling, caching, rate limiting
 - src/app/api/ai/chat/route.ts — streaming, message saving, session management
-- src/app/api/upload/route.ts — file validation, size limits, format detection
+- src/app/api/upload/parse/route.ts — file validation, size limits, format detection
 
 E2E TESTS — target 15%+ with Playwright:
 FILE: e2e/signup-and-build.spec.ts
@@ -1460,7 +1460,7 @@ PHASE 1 — FOUNDATION (Weeks 1-2) — fix critical bugs, establish infrastructu
 [2]  Add React error boundaries to ResumeBuilder, AIOptimizer, CareerCoachChat, StatsDashboard
 [3]  Wire ChatMessage model: create GET /api/ai/chat/history, save messages in POST /api/ai/chat
 [4]  Replace dashboard mock data with real DB queries from OptimizationReport and UserActivity
-[5]  Add Upstash rate limiting to /api/ai/chat (10/min), /api/ai/optimize (5/min), /api/upload (10/hr)
+[5]  Add Upstash rate limiting to /api/ai/chat (10/min), /api/ai/optimize (5/min), /api/upload/parse (10/hr)
 [6]  Add Zod validation schemas to ALL API routes — never use raw req.json() without validation
 [7]  Set up Sentry: install @sentry/nextjs, add sentry config files, wrap routes with error handler
 [8]  Create skeleton loading components for: resume list, builder, optimizer, dashboard, chat

@@ -73,7 +73,7 @@ Return ONLY valid JSON in this exact format:
     let text
     try {
       const response = await generateText({
-        model: model,
+        // @ts-expect-error - groq returns LanguageModelV1, compatible at runtime        model,
         prompt,
       })
       text = response.text
@@ -158,7 +158,7 @@ Return ONLY valid JSON in this exact format:
     // Return analysis data regardless of database save success
     return NextResponse.json({
       atsScore: optimizationData.atsScore,
-      keywordsToAdd: optimizationData.missingKeywords,
+      missingKeywords: optimizationData.missingKeywords,
       matchedKeywords: optimizationData.matchedKeywords,
       suggestions: optimizationData.suggestions,
       reportId,

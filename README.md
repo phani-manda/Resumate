@@ -1,6 +1,6 @@
 # ResumeAI - AI-Powered Resume Builder & Career Coach
 
-An intelligent resume optimization platform powered by AI, built with Next.js 15, Clerk authentication, Prisma, and Groq AI.
+An intelligent resume optimization platform powered by AI, built with Next.js 16, Clerk authentication, Prisma, and Groq AI.
 
 ## Features
 
@@ -13,7 +13,7 @@ An intelligent resume optimization platform powered by AI, built with Next.js 15
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Authentication**: Clerk
 - **Database**: PostgreSQL with Prisma ORM
 - **AI**: Groq AI (llama-3.3-70b-versatile) with Vercel AI SDK
@@ -23,7 +23,7 @@ An intelligent resume optimization platform powered by AI, built with Next.js 15
 
 ## Prerequisites
 
-- Node.js 18+ 
+- Node.js 24.x
 - PostgreSQL database
 - Clerk account ([clerk.com](https://clerk.com))
 - Groq API key ([console.groq.com](https://console.groq.com))

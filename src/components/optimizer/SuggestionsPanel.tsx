@@ -1,34 +1,48 @@
 'use client'
 
 import { Sparkles } from 'lucide-react'
+import { Badge } from '@/components/ui/Badge'
 import type { OptimizationResults } from './types'
 
 interface SuggestionsPanelProps {
   results: OptimizationResults
 }
 
+function priorityVariant(index: number): 'warning' | 'info' | 'secondary' {
+  if (index === 0) return 'warning'
+  if (index === 1) return 'info'
+  return 'secondary'
+}
+
+function priorityLabel(index: number): string {
+  if (index === 0) return 'High'
+  if (index === 1) return 'Medium'
+  return 'Low'
+}
+
 export function SuggestionsPanel({ results }: SuggestionsPanelProps) {
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-orange-400" /> Optimization Protocol
+      <h3 className="flex items-center gap-2 text-label uppercase text-ink-muted">
+        <Sparkles className="h-4 w-4 text-accent" />
+        Suggestions
       </h3>
       <div className="space-y-3" role="list" aria-label="Optimization suggestions">
         {results.suggestions && results.suggestions.length > 0 ? (
           results.suggestions.map((suggestion, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               role="listitem"
-              className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-orange-500/20 transition-colors"
+              className="mb-3 rounded-lg border border-line bg-surface p-4"
             >
-              <div className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-br from-orange-500 to-orange-300 flex items-center justify-center text-[10px] font-bold text-white">
-                {index + 1}
-              </div>
-              <p className="text-sm text-zinc-300 leading-relaxed">{suggestion}</p>
+              <Badge variant={priorityVariant(index)} className="mb-2">
+                {priorityLabel(index)}
+              </Badge>
+              <p className="text-body-md text-ink-primary">{suggestion}</p>
             </div>
           ))
         ) : (
-          <p className="text-zinc-500 text-sm">No suggestions available.</p>
+          <p className="text-body-sm text-ink-muted">No suggestions available.</p>
         )}
       </div>
     </div>

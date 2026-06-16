@@ -21,50 +21,34 @@ export function ActionToolbar({
   isDownloading,
 }: ActionToolbarProps) {
   return (
-    <div className="mb-6 flex flex-shrink-0 flex-wrap gap-3" role="toolbar" aria-label="Resume actions">
-      <Button 
-        variant="outline" 
-        size="sm"
-        className="h-10 rounded-xl border-transparent px-4 text-sm hover:bg-card"
-        onClick={onImport} 
-        disabled={isUploading}
-        aria-label="Import resume from file"
-      >
+    <div
+      className="mb-4 flex flex-shrink-0 flex-wrap gap-2 border-b border-line pb-4"
+      role="toolbar"
+      aria-label="Resume actions"
+    >
+      <Button variant="outline" size="sm" onClick={onImport} disabled={isUploading}>
         {isUploading ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Upload className="mr-2 h-4 w-4" />
+          <Upload className="h-4 w-4" />
         )}
         Import
       </Button>
-      
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="h-10 rounded-xl border-transparent px-4 text-sm hover:bg-card" 
-        onClick={onSave} 
-        disabled={isSaving}
-        aria-label="Save resume"
-      >
+
+      <Button variant="secondary" size="sm" onClick={onSave} disabled={isSaving}>
         {isSaving ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Save className="mr-2 h-4 w-4" />
+          <Save className="h-4 w-4" />
         )}
         Save
       </Button>
-      
-      <Button 
-        size="sm" 
-        className="h-10 rounded-xl bg-gradient-to-r from-primary to-orange-300 px-4 text-sm hover:opacity-90" 
-        onClick={onExport} 
-        disabled={isDownloading}
-        aria-label="Export resume as PDF"
-      >
+
+      <Button variant="default" size="sm" onClick={onExport} disabled={isDownloading}>
         {isDownloading ? (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Download className="mr-2 h-4 w-4" />
+          <Download className="h-4 w-4" />
         )}
         Export PDF
       </Button>

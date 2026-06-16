@@ -82,16 +82,15 @@ export function AnalysisProgress({ isAnalyzing, onComplete }: AnalysisProgressPr
               transition={{ duration: 0.2, delay: index * 0.05 }}
               className={cn(
                 "flex items-center gap-3 px-4 py-2 rounded-lg transition-colors",
-                isActive && "bg-primary/10",
-                isCompleted && "bg-orange-500/5"
+                isActive && "bg-accent-subtle",
+                isCompleted && "bg-success-subtle"
               )}
             >
-              {/* Status indicator */}
               <div className={cn(
                 "flex items-center justify-center w-6 h-6 rounded-full transition-colors",
-                isCompleted && "bg-orange-500/20",
-                isActive && "bg-primary/20",
-                isPending && "bg-white/5"
+                isCompleted && "bg-success-subtle",
+                isActive && "bg-accent-subtle",
+                isPending && "bg-subtle"
               )}>
                 {isCompleted ? (
                   <motion.div
@@ -99,31 +98,29 @@ export function AnalysisProgress({ isAnalyzing, onComplete }: AnalysisProgressPr
                     animate={{ scale: 1 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   >
-                    <Check className="h-3 w-3 text-orange-300" />
+                    <Check className="h-3 w-3 text-success-text" />
                   </motion.div>
                 ) : isActive ? (
-                  <Loader2 className="h-3 w-3 text-primary animate-spin" />
+                  <Loader2 className="h-3 w-3 text-accent animate-spin" />
                 ) : (
-                  <div className="w-2 h-2 rounded-full bg-zinc-600" />
+                  <div className="w-2 h-2 rounded-full bg-ink-muted" />
                 )}
               </div>
 
-              {/* Step label */}
               <span className={cn(
                 "text-sm transition-colors",
-                isCompleted && "text-orange-300",
-                isActive && "text-primary",
-                isPending && "text-zinc-600"
+                isCompleted && "text-success-text",
+                isActive && "text-accent-text",
+                isPending && "text-ink-muted"
               )}>
                 {step.label}
               </span>
 
-              {/* Completion time indicator */}
               {isCompleted && (
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="ml-auto text-xs text-zinc-500"
+                  className="ml-auto text-xs text-ink-muted"
                 >
                   {step.duration}ms
                 </motion.span>
@@ -133,11 +130,10 @@ export function AnalysisProgress({ isAnalyzing, onComplete }: AnalysisProgressPr
         })}
       </AnimatePresence>
 
-      {/* Overall progress bar */}
       <div className="mt-4 px-4">
-        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+        <div className="h-1 bg-subtle rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-primary to-orange-300"
+            className="h-full bg-accent"
             initial={{ width: '0%' }}
             animate={{ 
               width: `${((completedSteps.size + (currentStepIndex >= 0 ? 0.5 : 0)) / ANALYSIS_STEPS.length) * 100}%` 
@@ -145,38 +141,10 @@ export function AnalysisProgress({ isAnalyzing, onComplete }: AnalysisProgressPr
             transition={{ duration: 0.3 }}
           />
         </div>
-        <p className="text-xs text-zinc-500 text-center mt-2">
+        <p className="text-xs text-ink-muted text-center mt-2">
           {completedSteps.size} of {ANALYSIS_STEPS.length} steps complete
         </p>
       </div>
-    </div>
-  )
-}
-
-// Minimal inline progress for compact UI
-interface AnalysisProgressInlineProps {
-  isAnalyzing: boolean
-}
-
-export function AnalysisProgressInline({ isAnalyzing }: AnalysisProgressInlineProps) {
-  const [dotCount, setDotCount] = useState(1)
-
-  useEffect(() => {
-    if (!isAnalyzing) return
-
-    const interval = setInterval(() => {
-      setDotCount(prev => (prev % 3) + 1)
-    }, 400)
-
-    return () => clearInterval(interval)
-  }, [isAnalyzing])
-
-  if (!isAnalyzing) return null
-
-  return (
-    <div className="flex items-center gap-2 text-sm text-primary">
-      <Loader2 className="h-4 w-4 animate-spin" />
-      <span>Analyzing{'.'.repeat(dotCount)}</span>
     </div>
   )
 }

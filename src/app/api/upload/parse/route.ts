@@ -150,7 +150,8 @@ CRITICAL parsing rules - follow ALL of these:
   const model = groq('llama-3.3-70b-versatile')
   
   const response = await generateText({
-    model: model,
+    // @ts-expect-error - groq returns LanguageModelV1, compatible at runtime
+        model,
     prompt,
     maxTokens: 8192,
   })

@@ -24,21 +24,21 @@ export function ExperienceSection({
       {experiences.map((exp) => (
         <div 
           key={exp.id} 
-          className="group relative p-4 rounded-lg bg-white/5 border border-white/5 transition-colors hover:border-white/10"
+          className="group relative p-4 rounded-lg bg-subtle border border-line transition-colors hover:border-line-strong"
         >
           <div className="grid gap-3 md:grid-cols-2">
             <Input
               placeholder="Company"
               value={exp.company}
               onChange={(e) => onUpdate(exp.id, 'company', e.target.value)}
-              className="bg-black/30 border-white/10 h-9"
+              className="h-9"
               aria-label="Company name"
             />
             <Input
               placeholder="Position"
               value={exp.position}
               onChange={(e) => onUpdate(exp.id, 'position', e.target.value)}
-              className="bg-black/30 border-white/10 h-9"
+              className="h-9"
               aria-label="Job position"
             />
             <Input
@@ -46,7 +46,7 @@ export function ExperienceSection({
               placeholder="Start Date"
               value={exp.startDate}
               onChange={(e) => onUpdate(exp.id, 'startDate', e.target.value)}
-              className="bg-black/30 border-white/10 h-9"
+              className="h-9"
               aria-label="Start date"
             />
             <Input
@@ -54,7 +54,7 @@ export function ExperienceSection({
               placeholder="End Date"
               value={exp.endDate}
               onChange={(e) => onUpdate(exp.id, 'endDate', e.target.value)}
-              className="bg-black/30 border-white/10 h-9"
+              className="h-9"
               aria-label="End date"
             />
             <div className="col-span-2">
@@ -62,7 +62,7 @@ export function ExperienceSection({
                 placeholder="Describe your responsibilities and achievements..."
                 value={exp.description}
                 onChange={(e) => onUpdate(exp.id, 'description', e.target.value)}
-                className="bg-black/30 border-white/10 min-h-[80px]"
+                className="min-h-[80px]"
                 aria-label="Job description"
               />
             </div>
@@ -82,7 +82,7 @@ export function ExperienceSection({
         onClick={onAdd}
         variant="outline"
         size="sm"
-        className="w-full border-dashed border-white/20 hover:bg-white/5"
+        className="w-full border-dashed"
       >
         <Plus className="mr-2 h-4 w-4" /> Add Experience
       </Button>
