@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import type { 
   OptimizationResults, 
@@ -22,7 +22,6 @@ export function useOptimizer(): UseOptimizerReturn {
   const [isUploading, setIsUploading] = useState(false)
   const [parsedResume, setParsedResume] = useState<ParsedResume | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('sections')
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const buildResumeText = (resume: ParsedResume): string => {
     const lines: string[] = []
@@ -136,6 +135,8 @@ export function useOptimizer(): UseOptimizerReturn {
       setUploadedFile(null)
     } finally {
       setIsUploading(false)
+      // Clear the input so the same file can be re-selected after edits.
+      event.target.value = ''
     }
   }
 
@@ -143,9 +144,6 @@ export function useOptimizer(): UseOptimizerReturn {
     setUploadedFile(null)
     setResumeText('')
     setParsedResume(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
   }
 
   const handleAnalyze = async () => {

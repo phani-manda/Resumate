@@ -10,17 +10,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  let resumeData: ResumeData
   try {
-    const body = await request.json()
-    const resumeData = body as ResumeData
+    resumeData = (await request.json()) as ResumeData
+  } catch (error) {
+    console.error('PDF generation failed:', error)
+    return NextResponse.json({ error: 'Invalid resume data' }, { status: 400 })
+  }
 
-    if (!resumeData || !resumeData.personalInfo) {
-      return NextResponse.json({ error: 'Invalid resume data' }, { status: 400 })
-    }
+  if (!resumeData || !resumeData.personalInfo) {
+    return NextResponse.json({ error: 'Invalid resume data' }, { status: 400 })
+  }
 
-    const buffer = await renderToBuffer(
-      <ResumePDFDocument data={resumeData} />
-    )
+  // Constructed outside try/catch — JSX errors are not render errors here.
+  const document = <ResumePDFDocument data={resumeData} />
+
+  try {
+    const buffer = await renderToBuffer(document)
 
     const fileName = resumeData.personalInfo.fullName
       ? `${resumeData.personalInfo.fullName.replace(/\s+/g, '_')}_Resume.pdf`

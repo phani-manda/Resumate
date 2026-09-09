@@ -157,7 +157,6 @@ CRITICAL parsing rules - follow ALL of these:
   })
   
   let jsonText = response.text.trim()
-  console.log(`AI response length: ${jsonText.length} chars`)
 
   // Remove markdown code blocks if present
   if (jsonText.includes('```')) {
@@ -183,7 +182,6 @@ CRITICAL parsing rules - follow ALL of these:
     // Remove trailing incomplete value (last comma or partial string)
     jsonText = jsonText.replace(/,\s*$/, '').replace(/:\s*"[^"]*$/, ': ""')
     jsonText += ']'.repeat(Math.max(0, openBrackets)) + '}'.repeat(Math.max(0, openBraces))
-    console.log('Repaired truncated JSON')
   }
 
   try {
@@ -261,13 +259,11 @@ export async function POST(request: NextRequest) {
 
     try {
       if (fileType === 'application/pdf') {
-        console.log('Parsing PDF file...')
         rawText = await extractTextFromPDF(buffer)
       } else if (
         fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
         fileType === 'application/msword'
       ) {
-        console.log('Parsing DOCX file...')
         rawText = await extractTextFromDOCX(buffer)
       } else {
         return NextResponse.json(
@@ -289,10 +285,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      console.log(`Extracted ${rawText.length} characters from file`)
-
       // Parse the resume with AI
-      console.log('Parsing resume structure with AI...')
       try {
         const parsedData = await parseResumeWithAI(rawText)
 

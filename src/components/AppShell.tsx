@@ -8,7 +8,6 @@ import {
   FileText,
   Sparkles,
   MessageSquare,
-  Settings,
   Menu,
   X,
   User,
@@ -30,9 +29,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   useEffect(() => {
-    setMounted(true)
-    setMobileOpen(false)
-  }, [pathname])
+    const timer = setTimeout(() => setMounted(true), 0)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Close the mobile drawer on browser back/forward navigation.
+  // Link clicks close it via their own onClick handlers.
+  useEffect(() => {
+    const handlePopState = () => setMobileOpen(false)
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   const navLinks = (
     <nav className="flex flex-col gap-1 p-3">
@@ -55,15 +62,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
         )
       })}
-      <div className="my-2 border-t border-line" />
-      <Link
-        href="/dashboard"
-        onClick={() => setMobileOpen(false)}
-        className="flex h-10 items-center gap-3 rounded-md px-3 text-body-md text-ink-secondary transition-colors hover:bg-subtle hover:text-ink-primary"
-      >
-        <Settings className="h-6 w-6 shrink-0" />
-        <span>Settings</span>
-      </Link>
     </nav>
   )
 

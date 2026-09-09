@@ -31,37 +31,11 @@ export async function GET(request: NextRequest) {
     },
   })
 
-  const sessionsMap = new Map<
-    string | null,
-    { id: string | null; messageCount: number; lastActivity: string }
-  >()
-
-  for (const message of messages) {
-    const key = message.sessionId ?? null
-    const existing = sessionsMap.get(key)
-
-    if (existing) {
-      existing.messageCount += 1
-      if (new Date(message.timestamp) > new Date(existing.lastActivity)) {
-        existing.lastActivity = message.timestamp.toISOString()
-      }
-    } else {
-      sessionsMap.set(key, {
-        id: key,
-        messageCount: 1,
-        lastActivity: message.timestamp.toISOString(),
-      })
-    }
-  }
-
   return NextResponse.json({
     messages: messages.map((message) => ({
       ...message,
       timestamp: message.timestamp.toISOString(),
     })),
-    sessions: Array.from(sessionsMap.values()).sort((a, b) =>
-      new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime()
-    ),
   })
 }
 

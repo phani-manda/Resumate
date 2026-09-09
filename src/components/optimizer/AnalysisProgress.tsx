@@ -22,10 +22,9 @@ const ANALYSIS_STEPS: AnalysisStep[] = [
 
 interface AnalysisProgressProps {
   isAnalyzing: boolean
-  onComplete?: () => void
 }
 
-export function AnalysisProgress({ isAnalyzing, onComplete }: AnalysisProgressProps) {
+export function AnalysisProgress({ isAnalyzing }: AnalysisProgressProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(-1)
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set())
 
@@ -42,7 +41,6 @@ export function AnalysisProgress({ isAnalyzing, onComplete }: AnalysisProgressPr
     let stepIndex = 0
     const runStep = () => {
       if (stepIndex >= ANALYSIS_STEPS.length) {
-        onComplete?.()
         return
       }
 
@@ -57,7 +55,7 @@ export function AnalysisProgress({ isAnalyzing, onComplete }: AnalysisProgressPr
     }
 
     runStep()
-  }, [isAnalyzing, onComplete])
+  }, [isAnalyzing])
 
   if (!isAnalyzing && completedSteps.size === 0) {
     return null

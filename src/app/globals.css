@@ -207,6 +207,12 @@
     border-radius: var(--radius-full);
   }
 
+  .glass-panel {
+    background-color: color-mix(in srgb, var(--bg-surface) 85%, transparent);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(12px);
+  }
+
   @media (max-width: 767px) {
     .builder-layout {
       display: flex;

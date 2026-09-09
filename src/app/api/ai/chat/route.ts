@@ -156,7 +156,7 @@ Keep responses concise but comprehensive, typically 2-4 paragraphs unless more d
       )
     }
 
-    // biome-ignore lint/suspicious/noExplicitAny: convertToModelMessages v6 expects UIMessage with parts field; our simple role/content messages are runtime-compatible
+    // biome-ignore lint/suspicious/noExplicitAny: convertToModelMessages v6 accepts UIMessage; role/content pairs are runtime-compatible
     const coreMessages = await convertToModelMessages(validMessages as any)
 
     const result = streamText({

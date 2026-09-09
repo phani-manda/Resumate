@@ -24,8 +24,7 @@ export const metadata: Metadata = {
   creator: "Resumate",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/icon-192.png",
+    icon: "/favicon.svg",
   },
 };
 
@@ -47,12 +46,6 @@ export default function RootLayout({
       afterSignOutUrl="/"
     >
       <html lang="en" suppressHydrationWarning>
-        <head suppressHydrationWarning>
-          {/* Preconnect to external services */}
-          <link rel="preconnect" href="https://api.groq.com" />
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        </head>
         <body className={outfit.className}>
           <ThemeProvider
             attribute="class"

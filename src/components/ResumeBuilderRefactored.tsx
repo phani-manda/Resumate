@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
-import { User, Briefcase, GraduationCap, Zap, Sparkles, Maximize2, Download } from 'lucide-react'
+import { User, Briefcase, GraduationCap, Zap, Sparkles, Maximize2, Download, Loader2 } from 'lucide-react'
 
 import {
   SectionWrapper,
@@ -34,10 +35,15 @@ export function ResumeBuilderRefactored() {
   const previewRef = useRef<HTMLDivElement>(null)
   const fullPreviewRef = useRef<HTMLDivElement>(null)
 
+  // Supports /builder?id=<resumeId> links from the dashboard.
+  const searchParams = useSearchParams()
+  const resumeIdParam = searchParams.get('id')
+
   const {
     resumeData,
     setResumeData,
     isSaving,
+    isLoading,
     handleManualSave,
     updatePersonalInfo,
     updateSummary,
@@ -52,7 +58,7 @@ export function ResumeBuilderRefactored() {
     updateProject,
     addSkill,
     removeSkill,
-  } = useResumeBuilder()
+  } = useResumeBuilder(resumeIdParam)
 
   const { isUploading, fileInputRef, handleFileUpload, triggerFileSelect } = useFileUpload({
     onSuccess: setResumeData,
@@ -121,11 +127,17 @@ export function ResumeBuilderRefactored() {
     <div className="flex h-full min-h-0 flex-col">
       <div className="-mx-6 -mt-6 mb-4 flex flex-wrap items-center gap-3 border-b border-line bg-surface px-6 py-3">
         <h1 className="text-heading-lg text-ink-primary">
-          {resumeData.personalInfo.fullName || 'Untitled Resume'}
+          {isLoading ? 'Loading resume…' : (resumeData.personalInfo.fullName || 'Untitled Resume')}
         </h1>
         <span className="flex items-center gap-1.5 text-caption text-ink-muted">
-          <span className={`h-2 w-2 rounded-full ${isSaving ? 'animate-pulse bg-warning' : 'bg-success'}`} />
-          {isSaving ? 'Saving…' : 'Saved'}
+          {isLoading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
+          ) : (
+            <>
+              <span className={`h-2 w-2 rounded-full ${isSaving ? 'animate-pulse bg-warning' : 'bg-success'}`} />
+              {isSaving ? 'Saving…' : 'Saved'}
+            </>
+          )}
         </span>
       </div>
 

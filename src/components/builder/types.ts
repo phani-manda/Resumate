@@ -1,4 +1,5 @@
 // Shared types for resume builder components
+import type * as React from "react"
 
 export interface PersonalInfo {
   fullName: string
@@ -49,14 +50,12 @@ export interface SectionConfig {
   icon: React.ComponentType<{ className?: string }>
 }
 
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
-
 export interface UseResumeBuilderReturn {
   resumeData: ResumeData
   setResumeData: React.Dispatch<React.SetStateAction<ResumeData>>
   resumeId: string | null
-  saveStatus: SaveStatus
   isSaving: boolean
+  isLoading: boolean
   handleManualSave: () => Promise<void>
   updatePersonalInfo: (field: keyof PersonalInfo, value: string) => void
   updateSummary: (value: string) => void

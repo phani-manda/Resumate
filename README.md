@@ -70,7 +70,7 @@ GROQ_API_KEY=your_groq_api_key
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd ai-resume-builder--career-coach
+cd resumate
 ```
 
 2. Install dependencies:
@@ -134,14 +134,14 @@ npm run db:studio
 
 ```
 ├── src/
-│   ├── app/              # Next.js app router pages
-│   ├── components/       # React components
-│   ├── hooks/           # Custom React hooks
-│   ├── lib/             # Utility functions and configs
-│   └── visual-edits/    # Visual editing tools
+│   ├── app/              # Next.js app router pages & API routes
+│   ├── components/       # React components (ui/ contains the design system primitives)
+│   ├── hooks/            # Custom React hooks
+│   ├── lib/              # Utility functions and configs
+│   └── proxy.ts          # Clerk auth middleware
 ├── prisma/
-│   └── schema.prisma    # Database schema
-└── public/              # Static assets
+│   └── schema.prisma     # Database schema
+└── public/               # Static assets
 ```
 
 ## Deployment

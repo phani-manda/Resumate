@@ -2,7 +2,7 @@
 
 import { useState, useRef, ChangeEvent } from 'react'
 import { toast } from 'sonner'
-import type { ResumeData } from './types'
+import type { ResumeData, PersonalInfo, Experience, Education, Project } from './types'
 
 interface UseFileUploadOptions {
   onSuccess?: (data: ResumeData) => void
@@ -14,6 +14,16 @@ interface UseFileUploadReturn {
   fileInputRef: React.RefObject<HTMLInputElement | null>
   handleFileUpload: (e: ChangeEvent<HTMLInputElement>) => Promise<void>
   triggerFileSelect: () => void
+}
+
+/** Response shape of POST /api/upload/parse */
+interface ParsedResumeResponse {
+  personalInfo?: Partial<PersonalInfo>
+  summary?: string
+  experiences?: Array<Partial<Experience>>
+  education?: Array<Partial<Education>>
+  projects?: Array<Partial<Project>>
+  skills?: string[]
 }
 
 export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUploadReturn {
@@ -58,7 +68,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
         throw new Error(error.error || 'Failed to parse resume')
       }
 
-      const parsedData = await response.json()
+      const parsedData = (await response.json()) as ParsedResumeResponse
 
       const resumeData: ResumeData = {
         personalInfo: {
@@ -70,7 +80,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
           portfolio: parsedData.personalInfo?.portfolio || '',
         },
         summary: parsedData.summary || '',
-        experiences: (parsedData.experiences || []).map((exp: any) => ({
+        experiences: (parsedData.experiences || []).map((exp) => ({
           id: exp.id || Date.now().toString(),
           company: exp.company || '',
           position: exp.position || '',
@@ -78,14 +88,14 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
           endDate: exp.endDate || '',
           description: exp.description || '',
         })),
-        education: (parsedData.education || []).map((edu: any) => ({
+        education: (parsedData.education || []).map((edu) => ({
           id: edu.id || Date.now().toString(),
           institution: edu.institution || '',
           degree: edu.degree || '',
           field: edu.field || '',
           graduationDate: edu.graduationDate || '',
         })),
-        projects: (parsedData.projects || []).map((proj: any) => ({
+        projects: (parsedData.projects || []).map((proj) => ({
           id: proj.id || Date.now().toString(),
           name: proj.name || '',
           description: proj.description || '',

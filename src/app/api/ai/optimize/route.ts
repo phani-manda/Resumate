@@ -68,7 +68,6 @@ Return ONLY valid JSON in this exact format:
     }
 
     const model = groq('llama-3.3-70b-versatile')
-    console.log('Using Groq Llama 3.3 for resume optimization')
 
     let text
     try {
@@ -77,7 +76,6 @@ Return ONLY valid JSON in this exact format:
         prompt,
       })
       text = response.text
-      console.log('AI Response received, length:', text.length)
     } catch (aiError) {
       console.error('AI generation error:', aiError)
       return NextResponse.json(

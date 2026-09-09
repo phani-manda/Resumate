@@ -18,6 +18,5 @@ export type {
   Project,
   ResumeData,
   SectionConfig,
-  SaveStatus,
   UseResumeBuilderReturn,
 } from './types'

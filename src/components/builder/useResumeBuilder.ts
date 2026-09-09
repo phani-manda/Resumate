@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
-import type { 
-  ResumeData, 
-  PersonalInfo, 
-  Experience, 
-  Education, 
+import type {
+  ResumeData,
+  PersonalInfo,
+  Experience,
+  Education,
   Project,
-  SaveStatus,
-  UseResumeBuilderReturn 
+  UseResumeBuilderReturn,
 } from './types'
 
 const DEFAULT_RESUME_DATA: ResumeData = {
@@ -28,109 +27,135 @@ const DEFAULT_RESUME_DATA: ResumeData = {
   skills: [],
 }
 
+/**
+ * Builds a full ResumeData object from an API response, falling back to
+ * defaults for fields that may be missing from older records.
+ */
+function normalizeResumeData(data: Partial<ResumeData> | undefined): ResumeData {
+  if (!data) return DEFAULT_RESUME_DATA
+
+  return {
+    ...DEFAULT_RESUME_DATA,
+    ...data,
+    personalInfo: { ...DEFAULT_RESUME_DATA.personalInfo, ...(data.personalInfo ?? {}) },
+    experiences: data.experiences ?? [],
+    education: data.education ?? [],
+    projects: data.projects ?? [],
+    skills: data.skills ?? [],
+  }
+}
+
 export function useResumeBuilder(initialResumeId?: string | null): UseResumeBuilderReturn {
   const [resumeData, setResumeData] = useState<ResumeData>(DEFAULT_RESUME_DATA)
   const [resumeId, setResumeId] = useState<string | null>(initialResumeId ?? null)
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [isLoading, setIsLoading] = useState<boolean>(Boolean(initialResumeId))
   const [isSaving, setIsSaving] = useState(false)
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  // Guards the debounced autosave from firing while data is being fetched.
+  const isHydrating = useRef<boolean>(Boolean(initialResumeId))
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Auto-save with debounce
-  const handleAutoSave = useCallback(async () => {
-    if (!resumeData.personalInfo.fullName && !resumeData.personalInfo.email) {
-      return
-    }
+  // Load an existing resume when the builder is opened with ?id=<resumeId>.
+  useEffect(() => {
+    if (!initialResumeId) return
 
-    try {
-      setIsSaving(true)
-      setSaveStatus('saving')
-      const endpoint = resumeId ? `/api/resumes/${resumeId}` : '/api/resumes'
-      const method = resumeId ? 'PUT' : 'POST'
+    let cancelled = false
 
-      const response = await fetch(endpoint, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(resumeData),
+    fetch(`/api/resumes/${initialResumeId}`)
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Failed to load resume')
+        return response.json()
+      })
+      .then((data) => {
+        if (cancelled) return
+        setResumeData(normalizeResumeData(data))
+        setResumeId(initialResumeId)
+      })
+      .catch((loadError) => {
+        if (cancelled) return
+        console.error('Failed to load resume:', loadError)
+        toast.error('Could not load this resume')
+      })
+      .finally(() => {
+        if (cancelled) return
+        isHydrating.current = false
+        setIsLoading(false)
       })
 
-      if (!response.ok) throw new Error('Failed to save resume')
+    return () => {
+      cancelled = true
+    }
+  }, [initialResumeId])
 
-      const savedResume = await response.json()
-      if (!resumeId) {
-        setResumeId(savedResume.id)
-      }
-      setSaveStatus('saved')
-      toast.success('Resume auto-saved')
-    } catch (error) {
-      console.error('Auto-save failed:', error)
-      setSaveStatus('error')
-    } finally {
-      setIsSaving(false)
+  const persistResume = useCallback(async (): Promise<void> => {
+    const endpoint = resumeId ? `/api/resumes/${resumeId}` : '/api/resumes'
+    const method = resumeId ? 'PUT' : 'POST'
+
+    const response = await fetch(endpoint, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(resumeData),
+    })
+
+    if (!response.ok) throw new Error('Failed to save resume')
+
+    const savedResume = await response.json()
+    if (!resumeId) {
+      setResumeId(savedResume.id)
     }
   }, [resumeData, resumeId])
 
+  // Debounced auto-save — silent; the header status dot reflects the state.
   useEffect(() => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
+    if (isHydrating.current) return
+    if (!resumeData.personalInfo.fullName && !resumeData.personalInfo.email) return
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
 
-    saveTimeoutRef.current = setTimeout(() => {
-      handleAutoSave()
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        setIsSaving(true)
+        await persistResume()
+      } catch (error) {
+        console.error('Auto-save failed:', error)
+      } finally {
+        setIsSaving(false)
+      }
     }, 2000)
 
     return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
-      }
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     }
-  }, [resumeData, handleAutoSave])
+  }, [resumeData, persistResume])
 
   const handleManualSave = async () => {
     if (!resumeData.personalInfo.fullName && !resumeData.personalInfo.email) {
-      toast.error('Brief requirement: Name or Email needed.')
+      toast.error('Add at least a name or email to save your resume.')
       return
     }
 
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+
     try {
       setIsSaving(true)
-      setSaveStatus('saving')
-      const endpoint = resumeId ? `/api/resumes/${resumeId}` : '/api/resumes'
-      const method = resumeId ? 'PUT' : 'POST'
-
-      const response = await fetch(endpoint, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(resumeData),
-      })
-
-      if (!response.ok) throw new Error('Failed to save resume')
-
-      const savedResume = await response.json()
-      if (!resumeId) {
-        setResumeId(savedResume.id)
-      }
-      setSaveStatus('saved')
-      toast.success('Resume sequence saved.')
+      await persistResume()
+      toast.success('Resume saved.')
     } catch (error) {
       console.error('Save failed:', error)
-      setSaveStatus('error')
-      toast.error('Save sequence failed.')
+      toast.error('Could not save this resume.')
     } finally {
       setIsSaving(false)
     }
   }
 
-  // Personal info
   const updatePersonalInfo = (field: keyof PersonalInfo, value: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      personalInfo: { ...prev.personalInfo, [field]: value }
-    }))
+    setResumeData(prev => ({ ...prev, personalInfo: { ...prev.personalInfo, [field]: value } }))
   }
 
   const updateSummary = (value: string) => {
     setResumeData(prev => ({ ...prev, summary: value }))
   }
+
+  // Generates a unique-but-stable id for new list entries.
+  const newId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 
   // Experience handlers
   const addExperience = () => {
@@ -138,14 +163,7 @@ export function useResumeBuilder(initialResumeId?: string | null): UseResumeBuil
       ...prev,
       experiences: [
         ...prev.experiences,
-        {
-          id: Date.now().toString(),
-          company: '',
-          position: '',
-          startDate: '',
-          endDate: '',
-          description: '',
-        },
+        { id: newId('exp'), company: '', position: '', startDate: '', endDate: '', description: '' },
       ],
     }))
   }
@@ -153,16 +171,14 @@ export function useResumeBuilder(initialResumeId?: string | null): UseResumeBuil
   const removeExperience = (id: string) => {
     setResumeData(prev => ({
       ...prev,
-      experiences: prev.experiences.filter((exp) => exp.id !== id),
+      experiences: prev.experiences.filter(exp => exp.id !== id),
     }))
   }
 
   const updateExperience = (id: string, field: keyof Experience, value: string) => {
     setResumeData(prev => ({
       ...prev,
-      experiences: prev.experiences.map((exp) =>
-        exp.id === id ? { ...exp, [field]: value } : exp
-      ),
+      experiences: prev.experiences.map(exp => exp.id === id ? { ...exp, [field]: value } : exp),
     }))
   }
 
@@ -172,13 +188,7 @@ export function useResumeBuilder(initialResumeId?: string | null): UseResumeBuil
       ...prev,
       education: [
         ...prev.education,
-        {
-          id: Date.now().toString(),
-          institution: '',
-          degree: '',
-          field: '',
-          graduationDate: '',
-        },
+        { id: newId('edu'), institution: '', degree: '', field: '', graduationDate: '' },
       ],
     }))
   }
@@ -186,16 +196,14 @@ export function useResumeBuilder(initialResumeId?: string | null): UseResumeBuil
   const removeEducation = (id: string) => {
     setResumeData(prev => ({
       ...prev,
-      education: prev.education.filter((edu) => edu.id !== id),
+      education: prev.education.filter(edu => edu.id !== id),
     }))
   }
 
   const updateEducation = (id: string, field: keyof Education, value: string) => {
     setResumeData(prev => ({
       ...prev,
-      education: prev.education.map((edu) =>
-        edu.id === id ? { ...edu, [field]: value } : edu
-      ),
+      education: prev.education.map(edu => edu.id === id ? { ...edu, [field]: value } : edu),
     }))
   }
 
@@ -204,14 +212,8 @@ export function useResumeBuilder(initialResumeId?: string | null): UseResumeBuil
     setResumeData(prev => ({
       ...prev,
       projects: [
-        ...(prev.projects || []),
-        {
-          id: Date.now().toString(),
-          name: '',
-          description: '',
-          technologies: [],
-          link: '',
-        },
+        ...(prev.projects ?? []),
+        { id: newId('proj'), name: '', description: '', technologies: [], link: '' },
       ],
     }))
   }
@@ -219,33 +221,29 @@ export function useResumeBuilder(initialResumeId?: string | null): UseResumeBuil
   const removeProject = (id: string) => {
     setResumeData(prev => ({
       ...prev,
-      projects: (prev.projects || []).filter((proj) => proj.id !== id),
+      projects: (prev.projects ?? []).filter(proj => proj.id !== id),
     }))
   }
 
   const updateProject = (id: string, field: keyof Project, value: string | string[]) => {
     setResumeData(prev => ({
       ...prev,
-      projects: (prev.projects || []).map((proj) =>
-        proj.id === id ? { ...proj, [field]: value } : proj
-      ),
+      projects: (prev.projects ?? []).map(proj => proj.id === id ? { ...proj, [field]: value } : proj),
     }))
   }
 
   // Skill handlers
   const addSkill = (skill: string) => {
-    if (skill.trim() && !resumeData.skills.includes(skill.trim())) {
-      setResumeData(prev => ({
-        ...prev,
-        skills: [...prev.skills, skill.trim()],
-      }))
+    const trimmed = skill.trim()
+    if (trimmed && !resumeData.skills.includes(trimmed)) {
+      setResumeData(prev => ({ ...prev, skills: [...prev.skills, trimmed] }))
     }
   }
 
   const removeSkill = (skill: string) => {
     setResumeData(prev => ({
       ...prev,
-      skills: prev.skills.filter((s) => s !== skill),
+      skills: prev.skills.filter(s => s !== skill),
     }))
   }
 
@@ -253,8 +251,8 @@ export function useResumeBuilder(initialResumeId?: string | null): UseResumeBuil
     resumeData,
     setResumeData,
     resumeId,
-    saveStatus,
     isSaving,
+    isLoading,
     handleManualSave,
     updatePersonalInfo,
     updateSummary,

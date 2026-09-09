@@ -17,10 +17,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    // Turbopack configuration (now stable)
-  },
-
   // Security headers
   async headers() {
     return [
@@ -51,16 +47,7 @@ const nextConfig: NextConfig = {
   // Experimental features
   experimental: {
     // Enable optimized package imports
-    optimizePackageImports: [
-      "lucide-react",
-      "framer-motion",
-      "recharts",
-      "@radix-ui/react-accordion",
-      "@radix-ui/react-dialog",
-      "@radix-ui/react-dropdown-menu",
-      "@radix-ui/react-tabs",
-      "@radix-ui/react-tooltip",
-    ],
+    optimizePackageImports: ["lucide-react", "framer-motion"],
   },
 
   // Logging configuration

@@ -40,7 +40,7 @@ export default function SignUpPage() {
             }}
             className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-orange-300/10 rounded-full blur-3xl"
           />
-          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20 bg-center" />
+          <div className="absolute inset-0 dot-grid-bg opacity-30" />
         </div>
 
         <div className="relative z-10 p-12 text-center max-w-lg">

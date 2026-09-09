@@ -9,17 +9,11 @@ export interface DashboardStats {
   latestScore: number
   avgScore: number
   scoreImprovement: number
-  completionPercentage: number
   recentOptimizations: number
 }
 
 interface DashboardAPIResponse {
   stats: DashboardStats
-  charts: {
-    scoreHistory: { date: string; score: number }[]
-    topMissingKeywords: { keyword: string; count: number }[]
-    weeklyActivity: unknown[]
-  }
 }
 
 const fetcher = async (url: string): Promise<DashboardAPIResponse> => {
@@ -40,7 +34,6 @@ export function useDashboardStats() {
 
   return {
     stats: data?.stats ?? null,
-    charts: data?.charts ?? null,
     isLoading,
     isError: !!error,
     errorMessage: error instanceof Error ? error.message : undefined,

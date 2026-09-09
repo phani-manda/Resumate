@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Label } from '@/components/ui/Label'
 import { Input } from '@/components/ui/Input'
@@ -33,7 +33,6 @@ import {
 
 export function AIOptimizerRefactored() {
   const [newSkill, setNewSkill] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const {
     jobDescription,
@@ -98,15 +97,7 @@ export function AIOptimizerRefactored() {
                 <Label htmlFor="resumeText" className="font-medium flex items-center gap-2 text-ink-primary">
                   <FileText className="h-4 w-4 text-accent-text" /> Current Resume Content
                 </Label>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                
+
                 <ResumeUploader
                   uploadedFile={uploadedFile}
                   isUploading={isUploading}

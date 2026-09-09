@@ -23,7 +23,7 @@ export function CareerCoachChat() {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   const [reactionState, setReactionState] = useState<Record<string, 'thumbsUp' | 'thumbsDown'>>({})
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error, setMessages } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error, setMessages, append } = useChat({
     api: '/api/ai/chat',
     body: { sessionId },
     initialMessages: [
@@ -47,16 +47,21 @@ export function CareerCoachChat() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      const viewport = scrollAreaRef.current.querySelector('[data-slot="scroll-area-viewport"]')
-      if (viewport) {
-        viewport.scrollTop = viewport.scrollHeight
-      }
+    const viewport = scrollAreaRef.current?.querySelector<HTMLElement>('[data-slot="scroll-area-viewport"]')
+    if (viewport) {
+      viewport.scrollTop = viewport.scrollHeight
     }
   }, [messages])
 
   useEffect(() => {
     let isMounted = true
+
+    interface ChatHistoryMessage {
+      id: string
+      role: 'user' | 'assistant'
+      content: string
+      sessionId?: string
+    }
 
     const loadHistory = async () => {
       try {
@@ -68,14 +73,14 @@ export function CareerCoachChat() {
 
         if (Array.isArray(payload.messages) && payload.messages.length > 0) {
           setMessages(
-            payload.messages.map((message: { id: string; role: 'user' | 'assistant'; content: string }) => ({
+            (payload.messages as ChatHistoryMessage[]).map((message) => ({
               id: message.id,
               role: message.role,
               content: message.content,
             }))
           )
 
-          const lastMessage = payload.messages[payload.messages.length - 1]
+          const lastMessage = (payload.messages as ChatHistoryMessage[])[payload.messages.length - 1]
           if (lastMessage?.sessionId) {
             setSessionId(lastMessage.sessionId)
           }
@@ -93,14 +98,7 @@ export function CareerCoachChat() {
   }, [setMessages])
 
   const handleSendQuestion = (question: string) => {
-    handleInputChange({ target: { value: question } } as React.ChangeEvent<HTMLTextAreaElement>)
-    
-    setTimeout(() => {
-      const form = document.querySelector('form')
-      if (form) {
-        form.requestSubmit()
-      }
-    }, 0)
+    void append({ role: 'user', content: question })
   }
 
   const handleCopyMessage = async (messageId: string, content: string) => {

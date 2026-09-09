@@ -8,7 +8,6 @@ import {
   Target,
   MessageSquare,
   Pencil,
-  Download,
   TrendingUp,
   TrendingDown,
   Loader2,
@@ -225,14 +224,6 @@ export function StatsDashboard() {
                       <Link href={`/builder?id=${resume.id}`} aria-label="Edit">
                         <Pencil className="h-4 w-4" />
                       </Link>
-                    </Button>
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/optimizer?resume=${resume.id}`} aria-label="Optimize">
-                        <Sparkles className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="icon" aria-label="Export">
-                      <Download className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
