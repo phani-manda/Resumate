@@ -6,6 +6,7 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',   // Clerk sign-in page and related routes
   '/sign-up(.*)',   // Clerk sign-up page and related routes
   '/',              // Landing page - always public for marketing purposes
+  '/manifest.json', // PWA manifest (served as a static file, must bypass auth)
   '/api/webhooks(.*)'  // Webhook endpoints (e.g., Clerk user sync, payment providers)
 ])
 

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import mammoth from 'mammoth'
 import { groq } from '@ai-sdk/groq'
@@ -6,7 +6,10 @@ import { generateText } from 'ai'
 import { extractText } from 'unpdf'
 
 export const runtime = 'nodejs'
-export const maxDuration = 120
+export const maxDuration = 60
+
+// Model is configurable via GROQ_MODEL so it can be swapped without a code change.
+const MODEL_ID = process.env.GROQ_MODEL || 'openai/gpt-oss-120b'
 
 interface ParsedPersonalInfo {
   fullName: string
@@ -147,13 +150,12 @@ CRITICAL parsing rules - follow ALL of these:
     throw new Error('AI service not configured. Please set GROQ_API_KEY.')
   }
 
-  const model = groq('llama-3.3-70b-versatile')
+  const model = groq(MODEL_ID)
   
   const response = await generateText({
-    // @ts-expect-error - groq returns LanguageModelV1, compatible at runtime
-        model,
+    model,
     prompt,
-    maxTokens: 8192,
+    maxOutputTokens: 8192,
   })
   
   let jsonText = response.text.trim()

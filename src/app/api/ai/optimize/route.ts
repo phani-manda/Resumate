@@ -1,8 +1,11 @@
-import { groq } from '@ai-sdk/groq'
+﻿import { groq } from '@ai-sdk/groq'
 import { generateText } from 'ai'
 import { auth } from '@clerk/nextjs/server'
 import prisma from '@/lib/db'
 import { NextRequest, NextResponse } from 'next/server'
+
+// Model is configurable via GROQ_MODEL so it can be swapped without a code change.
+const MODEL_ID = process.env.GROQ_MODEL || 'openai/gpt-oss-120b'
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,12 +70,12 @@ Return ONLY valid JSON in this exact format:
       )
     }
 
-    const model = groq('llama-3.3-70b-versatile')
+    const model = groq(MODEL_ID)
 
     let text
     try {
       const response = await generateText({
-        // @ts-expect-error - groq returns LanguageModelV1, compatible at runtime        model,
+        model,
         prompt,
       })
       text = response.text
