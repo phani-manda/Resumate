@@ -13,12 +13,12 @@ import {
   EducationSection,
   ProjectsSection,
   SkillsSection,
-  ResumePreview,
   ActionToolbar,
   useResumeBuilder,
   useFileUpload,
   usePdfExport,
 } from './builder'
+import { ResumePreviewScaler } from './builder/ResumePreviewScaler'
 import type { SectionConfig } from './builder/types'
 
 const sections: SectionConfig[] = [
@@ -192,11 +192,7 @@ export function ResumeBuilderRefactored() {
           </Button>
         </div>
 
-        <div className="flex flex-1 min-h-0 items-start justify-center overflow-auto p-6 scrollbar-thin">
-          <div className="w-full max-w-[520px] rounded-lg bg-white p-8 shadow-lg">
-            <ResumePreview ref={previewRef} resumeData={resumeData} />
-          </div>
-        </div>
+        <ResumePreviewScaler resumeData={resumeData} previewRef={previewRef} />
       </div>
 
       {/* Full Preview Dialog */}
@@ -212,9 +208,7 @@ export function ResumeBuilderRefactored() {
             </div>
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-auto p-6">
-            <div className="mx-auto rounded-lg bg-white p-8 shadow-lg" style={{ maxWidth: '210mm' }}>
-              <ResumePreview ref={fullPreviewRef} resumeData={resumeData} forPdf />
-            </div>
+            <ResumePreviewScaler resumeData={resumeData} previewRef={fullPreviewRef} />
           </div>
         </DialogContent>
       </Dialog>
