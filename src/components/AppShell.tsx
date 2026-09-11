@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
@@ -51,7 +51,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             href={item.href}
             onClick={() => setMobileOpen(false)}
             className={cn(
-              "flex h-10 items-center gap-3 rounded-md px-3 text-body-md transition-all duration-[var(--duration)]",
+              "flex h-10 items-center gap-3 rounded-md px-3 text-body-md transition-all duration-base",
               isActive
                 ? "border-l-2 border-accent bg-accent-subtle pl-[10px] font-medium text-accent-text"
                 : "border-l-2 border-transparent text-ink-secondary hover:bg-subtle hover:text-ink-primary"

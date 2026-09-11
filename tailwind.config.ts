@@ -122,6 +122,7 @@ const config: Config = {
       },
       transitionDuration: {
         DEFAULT: "var(--duration)",
+        base: "var(--duration)",
       },
     },
   },
