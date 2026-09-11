@@ -161,25 +161,33 @@ export function AIOptimizerRefactored() {
                   </div>
                 )}
                 
-                {uploadedFile && parsedResume && (
+                {/* Live editing is available whenever a parsed resume exists
+                    (uploaded file OR loaded from previous work). */}
+                {parsedResume && (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant={viewMode === 'sections' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('sections')}
-                        className="text-xs"
-                      >
-                        <Edit3 className="h-3 w-3 mr-1" /> Sections
-                      </Button>
-                      <Button
-                        variant={viewMode === 'text' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('text')}
-                        className="text-xs"
-                      >
-                        <Eye className="h-3 w-3 mr-1" /> Raw Text
-                      </Button>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-success inline-flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                        {uploadedFile ? 'Parsed from file' : 'Loaded from previous work'}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant={viewMode === 'sections' ? 'secondary' : 'ghost'}
+                          size="sm"
+                          onClick={() => setViewMode('sections')}
+                          className="text-xs"
+                        >
+                          <Edit3 className="h-3 w-3 mr-1" /> Sections
+                        </Button>
+                        <Button
+                          variant={viewMode === 'text' ? 'secondary' : 'ghost'}
+                          size="sm"
+                          onClick={() => setViewMode('text')}
+                          className="text-xs"
+                        >
+                          <Eye className="h-3 w-3 mr-1" /> Raw Text
+                        </Button>
+                      </div>
                     </div>
 
                     {viewMode === 'text' ? (

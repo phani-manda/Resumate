@@ -216,7 +216,7 @@ export function useOptimizer(): UseOptimizerReturn {
   const mapResumeToState = useCallback(
     (data: Record<string, unknown>): ParsedResume => {
       const info = (data.personalInfo ?? {}) as Partial<PersonalInfo>
-      return {
+      const resume: ParsedResume = {
         personalInfo: { ...EMPTY_PERSONAL_INFO, ...info },
         summary: (data.summary as string) ?? '',
         experiences: Array.isArray(data.experiences)
@@ -227,6 +227,9 @@ export function useOptimizer(): UseOptimizerReturn {
         skills: Array.isArray(data.skills) ? (data.skills as string[]) : [],
         rawText: '',
       }
+      // Rebuild raw text so the "Raw Text" view is populated when loading.
+      resume.rawText = buildResumeText(resume)
+      return resume
     },
     []
   )
