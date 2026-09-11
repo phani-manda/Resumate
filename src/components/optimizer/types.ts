@@ -1,9 +1,20 @@
 // Shared types for AI Optimizer components
 
+export interface Improvement {
+  issue: string
+  before: string
+  after: string
+  impact: 'high' | 'medium' | 'low'
+}
+
 export interface OptimizationResults {
   atsScore: number
   missingKeywords: string[]
   matchedKeywords: string[]
+  /** Overall AI assessment of the resume against the job description. */
+  review: string | null
+  /** Highest-impact fixes with an exact before → after rewrite. */
+  improvements: Improvement[]
   suggestions: string[]
 }
 
@@ -51,6 +62,14 @@ export interface ParsedResume {
   rawText: string
 }
 
+/** Minimal shape of a saved resume listed under "Previous Work". */
+export interface SavedResumeSummary {
+  id: string
+  title: string | null
+  updatedAt: string
+  atsScore?: number | null
+}
+
 export type ViewMode = 'text' | 'sections'
 
 export interface UseOptimizerReturn {
@@ -68,6 +87,14 @@ export interface UseOptimizerReturn {
   handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>
   handleRemoveFile: () => void
   handleAnalyze: () => Promise<void>
+  // Previous work — persistence of the resume being optimized
+  activeResumeId: string | null
+  savedResumes: SavedResumeSummary[]
+  isLoadingResumes: boolean
+  isSaving: boolean
+  handleSaveResume: () => Promise<void>
+  handleLoadResume: (id: string) => Promise<void>
+  handleNewWork: () => void
   // Resume editing handlers
   updatePersonalInfo: (field: keyof PersonalInfo, value: string) => void
   updateSummary: (value: string) => void

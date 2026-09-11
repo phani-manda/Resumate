@@ -4,6 +4,8 @@ import { TrendingUp } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { ScrollArea } from '@/components/ui/ScrollArea'
 import { ScoreCard } from './ScoreCard'
+import { ReviewPanel } from './ReviewPanel'
+import { ImprovementsPanel } from './ImprovementsPanel'
 import { KeywordsPanel } from './KeywordsPanel'
 import { SuggestionsPanel } from './SuggestionsPanel'
 import { EmptyResultsState } from './EmptyResultsState'
@@ -46,6 +48,8 @@ export function ResultsPanel({ results }: ResultsPanelProps) {
         <ScrollArea className="flex-1">
           <div className="space-y-6 p-5">
             <ScoreCard results={results} />
+            <ReviewPanel results={results} />
+            <ImprovementsPanel results={results} />
             <KeywordsPanel results={results} />
             <SuggestionsPanel results={results} />
           </div>

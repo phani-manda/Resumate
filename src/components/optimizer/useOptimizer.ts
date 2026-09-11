@@ -1,17 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
-import type { 
-  OptimizationResults, 
-  PersonalInfo, 
-  Experience, 
-  Education, 
+import type {
+  OptimizationResults,
+  PersonalInfo,
+  Experience,
+  Education,
   Project,
   ParsedResume,
+  SavedResumeSummary,
   ViewMode,
   UseOptimizerReturn
 } from './types'
+
+const EMPTY_PERSONAL_INFO: PersonalInfo = {
+  fullName: '',
+  email: '',
+  phone: '',
+  location: '',
+  linkedin: '',
+  portfolio: ''
+}
 
 export function useOptimizer(): UseOptimizerReturn {
   const [jobDescription, setJobDescription] = useState('')
@@ -22,6 +33,18 @@ export function useOptimizer(): UseOptimizerReturn {
   const [isUploading, setIsUploading] = useState(false)
   const [parsedResume, setParsedResume] = useState<ParsedResume | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('sections')
+
+  // Previous work — the resume being optimized and its saved instances.
+  const [activeResumeId, setActiveResumeId] = useState<string | null>(null)
+  const [savedResumes, setSavedResumes] = useState<SavedResumeSummary[]>([])
+  const [isLoadingResumes, setIsLoadingResumes] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Supports /optimizer?resume=<id> links from the dashboard.
+  const searchParams = useSearchParams()
+  const resumeIdParam = searchParams.get('resume')
+  const handledResumeParam = useRef(false)
 
   const buildResumeText = (resume: ParsedResume): string => {
     const lines: string[] = []
@@ -147,10 +170,10 @@ export function useOptimizer(): UseOptimizerReturn {
   }
 
   const handleAnalyze = async () => {
-    const textToAnalyze = viewMode === 'sections' && parsedResume 
-      ? buildResumeText(parsedResume) 
+    const textToAnalyze = viewMode === 'sections' && parsedResume
+      ? buildResumeText(parsedResume)
       : resumeText
-    
+
     if (!jobDescription.trim() || !textToAnalyze.trim()) {
       toast.error('Input missing: Job Description and Resume required.')
       return
@@ -174,6 +197,8 @@ export function useOptimizer(): UseOptimizerReturn {
         atsScore: data.atsScore || 0,
         missingKeywords: data.missingKeywords || [],
         matchedKeywords: data.matchedKeywords || [],
+        review: typeof data.review === 'string' ? data.review : null,
+        improvements: Array.isArray(data.improvements) ? data.improvements : [],
         suggestions: data.suggestions || [],
       })
       toast.success('Analysis complete.')
@@ -185,7 +210,86 @@ export function useOptimizer(): UseOptimizerReturn {
     }
   }
 
-  // Resume editing handlers
+  // ===== Previous work — persistence ========================================
+
+  /** Maps an API resume record to the editor's ParsedResume state. */
+  const mapResumeToState = useCallback(
+    (data: Record<string, unknown>): ParsedResume => {
+      const info = (data.personalInfo ?? {}) as Partial<PersonalInfo>
+      return {
+        personalInfo: { ...EMPTY_PERSONAL_INFO, ...info },
+        summary: (data.summary as string) ?? '',
+        experiences: Array.isArray(data.experiences)
+          ? (data.experiences as Experience[])
+          : [],
+        education: Array.isArray(data.education) ? (data.education as Education[]) : [],
+        projects: Array.isArray(data.projects) ? (data.projects as Project[]) : [],
+        skills: Array.isArray(data.skills) ? (data.skills as string[]) : [],
+        rawText: '',
+      }
+    },
+    []
+  )
+
+  /** Loads the list of saved resumes for the "Previous Work" menu. */
+  const refreshSavedResumes = useCallback(async () => {
+    setIsLoadingResumes(true)
+    try {
+      const response = await fetch('/api/resumes')
+      if (!response.ok) return
+      const data = await response.json()
+      if (Array.isArray(data)) {
+        setSavedResumes(
+          data.map((resume: { id: string; title?: string | null; updatedAt: string; atsScore?: number | null }) => ({
+            id: resume.id,
+            title: resume.title ?? null,
+            updatedAt: resume.updatedAt,
+            atsScore: resume.atsScore ?? null,
+          }))
+        )
+      }
+    } catch (error) {
+      console.error('Failed to load saved resumes:', error)
+    } finally {
+      setIsLoadingResumes(false)
+    }
+  }, [])
+
+  // Keeps the saved list fresh on mount.
+  useEffect(() => {
+    void refreshSavedResumes()
+  }, [refreshSavedResumes])
+
+  // Loads ?resume=<id> once (dashboard "Optimize" links).
+  useEffect(() => {
+    if (!resumeIdParam || handledResumeParam.current) return
+    handledResumeParam.current = true
+
+    let cancelled = false
+    void (async () => {
+      try {
+        const response = await fetch(`/api/resumes/${resumeIdParam}`)
+        if (!response.ok) throw new Error('Failed to load resume')
+        const data = await response.json()
+        if (cancelled) return
+        setParsedResume(mapResumeToState(data))
+        setActiveResumeId(resumeIdParam)
+        setViewMode('sections')
+        toast.success('Resume loaded from your previous work')
+      } catch (error) {
+        if (cancelled) return
+        console.error('Failed to load resume:', error)
+        toast.error('Could not load this resume')
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [resumeIdParam, mapResumeToState])
+
+  // ===== Resume editing handlers ============================================
+
   const updatePersonalInfo = (field: keyof PersonalInfo, value: string) => {
     if (!parsedResume) return
     setParsedResume({
@@ -313,6 +417,110 @@ export function useOptimizer(): UseOptimizerReturn {
     })
   }
 
+  /** Persists the resume currently being optimized (create or update). */
+  const persistActiveResume = useCallback(
+    async (state: ParsedResume): Promise<string | null> => {
+      const payload = {
+        title: state.personalInfo.fullName
+          ? `${state.personalInfo.fullName} — Optimizer`
+          : 'Optimizer Work',
+        personalInfo: state.personalInfo,
+        summary: state.summary,
+        experiences: state.experiences,
+        education: state.education,
+        projects: state.projects,
+        skills: state.skills,
+      }
+
+      const endpoint = activeResumeId ? `/api/resumes/${activeResumeId}` : '/api/resumes'
+      const method = activeResumeId ? 'PUT' : 'POST'
+
+      const response = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) throw new Error('Failed to save resume')
+
+      const saved = (await response.json()) as { id: string }
+      if (!activeResumeId) setActiveResumeId(saved.id)
+      void refreshSavedResumes()
+      return saved.id
+    },
+    [activeResumeId, refreshSavedResumes]
+  )
+
+  // Silent debounced autosave while the user edits the resume sections.
+  useEffect(() => {
+    if (!parsedResume) return
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        setIsSaving(true)
+        await persistActiveResume(parsedResume)
+      } catch (error) {
+        console.error('Autosave failed:', error)
+      } finally {
+        setIsSaving(false)
+      }
+    }, 2000)
+
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    }
+  }, [parsedResume, persistActiveResume])
+
+  const handleSaveResume = useCallback(async () => {
+    if (!parsedResume) {
+      toast.error('Nothing to save yet — add or upload resume content first.')
+      return
+    }
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    try {
+      setIsSaving(true)
+      await persistActiveResume(parsedResume)
+      toast.success('Resume saved to your previous work.')
+    } catch (error) {
+      console.error('Save failed:', error)
+      toast.error('Could not save this resume.')
+    } finally {
+      setIsSaving(false)
+    }
+  }, [parsedResume, persistActiveResume])
+
+  const handleLoadResume = useCallback(
+    async (id: string) => {
+      try {
+        const response = await fetch(`/api/resumes/${id}`)
+        if (!response.ok) throw new Error('Failed to load resume')
+        const data = await response.json()
+        setParsedResume(mapResumeToState(data))
+        setActiveResumeId(id)
+        setResults(null)
+        setUploadedFile(null)
+        setJobDescription('')
+        setViewMode('sections')
+        toast.success('Resume loaded from your previous work')
+      } catch (error) {
+        console.error('Failed to load resume:', error)
+        toast.error('Could not load this resume')
+      }
+    },
+    [mapResumeToState]
+  )
+
+  const handleNewWork = useCallback(() => {
+    setActiveResumeId(null)
+    setParsedResume(null)
+    setResults(null)
+    setUploadedFile(null)
+    setResumeText('')
+    setJobDescription('')
+    setViewMode('sections')
+  }, [])
+
   return {
     jobDescription,
     setJobDescription,
@@ -328,6 +536,13 @@ export function useOptimizer(): UseOptimizerReturn {
     handleFileUpload,
     handleRemoveFile,
     handleAnalyze,
+    activeResumeId,
+    savedResumes,
+    isLoadingResumes,
+    isSaving,
+    handleSaveResume,
+    handleLoadResume,
+    handleNewWork,
     updatePersonalInfo,
     updateSummary,
     updateExperience,

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/Label'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { cn } from '@/lib/utils'
+import { PreviousWorkSelect } from './PreviousWorkSelect'
 import {
   FileText,
   Sparkles,
@@ -20,7 +21,10 @@ import {
   Plus,
   Trash2,
   FolderKanban,
-  X
+  X,
+  Save,
+  FolderOpen,
+  FilePlus2,
 } from 'lucide-react'
 
 import {
@@ -49,6 +53,14 @@ export function AIOptimizerRefactored() {
     handleFileUpload,
     handleRemoveFile,
     handleAnalyze,
+    // Previous work — persistence
+    activeResumeId,
+    savedResumes,
+    isLoadingResumes,
+    isSaving,
+    handleSaveResume,
+    handleLoadResume,
+    handleNewWork,
     updatePersonalInfo,
     updateSummary,
     updateExperience,
@@ -76,13 +88,43 @@ export function AIOptimizerRefactored() {
       {/* Left: Input Form */}
       <div className="w-full lg:w-1/2 flex flex-col min-h-0 max-h-full">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-card">
-          <div className="flex shrink-0 items-center gap-3 border-b border-line p-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-subtle">
-              <Bot className="h-6 w-6 text-accent-text" />
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-line p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-subtle">
+                <Bot className="h-6 w-6 text-accent-text" />
+              </div>
+              <div>
+                <h2 className="text-heading-lg text-ink-primary">ATS Optimizer</h2>
+                <p className="text-caption text-ink-secondary">Match your resume to any job description</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-heading-lg text-ink-primary">ATS Optimizer</h2>
-              <p className="text-caption text-ink-secondary">Match your resume to any job description</p>
+
+            {/* Previous work + save controls */}
+            <div className="flex items-center gap-2">
+              {activeResumeId && (
+                <span className="hidden items-center gap-1 text-caption text-success sm:inline-flex">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                  {isSaving ? 'Saving…' : 'Saved'}
+                </span>
+              )}
+              <PreviousWorkSelect
+                resumes={savedResumes}
+                activeId={activeResumeId}
+                isLoading={isLoadingResumes}
+                onSelect={handleLoadResume}
+                onNew={handleNewWork}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleSaveResume}
+                disabled={isSaving || !parsedResume}
+                title="Save resume to your previous work"
+              >
+                {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline">Save</span>
+              </Button>
             </div>
           </div>
 

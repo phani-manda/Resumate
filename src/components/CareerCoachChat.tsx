@@ -72,6 +72,61 @@ export function CareerCoachChat() {
   const isBusy = status === 'submitted' || status === 'streaming'
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
+  // Length of the assistant message that is currently being generated.
+  const lastAssistantText = () => {
+    const last = messages[messages.length - 1]
+    return last?.role === 'assistant' ? getMessageText(last) : ''
+  }
+
+  // ---- Smooth "typing" reveal -------------------------------------------------
+  // The model streams fast once it starts; a typewriter reveal makes the
+  // generation visible and readable instead of appearing all at once.
+  const TYPING_TICK_MS = 30
+  const typedCharsRef = useRef<number | null>(null)
+  const [typedChars, setTypedChars] = useState<number | null>(null)
+  const typedMessageIdRef = useRef<string | null>(null)
+
+  // Detect a brand-new assistant message (start of a reply) and begin typing it.
+  useEffect(() => {
+    const last = messages[messages.length - 1]
+    if (last?.role === 'assistant' && typedMessageIdRef.current !== last.id) {
+      typedMessageIdRef.current = last.id
+      typedCharsRef.current = 0
+      setTypedChars(0)
+    }
+  }, [messages])
+
+  // Ticker: advance the reveal until it reaches the full message length.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const current = typedCharsRef.current
+      if (current === null) return
+      const available = lastAssistantText().length
+      if (available === 0) return
+      const step = Math.max(6, Math.min(24, Math.round(available / 20)))
+      const next = Math.min(available, current + step)
+      if (next >= available) {
+        typedCharsRef.current = null
+        setTypedChars(null)
+      } else {
+        typedCharsRef.current = next
+        setTypedChars(next)
+      }
+    }, TYPING_TICK_MS)
+    return () => clearInterval(timer)
+  }, [])
+
+  // Seconds elapsed while waiting for the first tokens after sending.
+  const [thinkingSeconds, setThinkingSeconds] = useState(0)
+  useEffect(() => {
+    if (!isBusy) {
+      setThinkingSeconds(0)
+      return
+    }
+    const timer = setInterval(() => setThinkingSeconds((s) => s + 1), 1000)
+    return () => clearInterval(timer)
+  }, [isBusy])
+
   useEffect(() => {
     const viewport = scrollAreaRef.current?.querySelector<HTMLElement>('[data-slot="scroll-area-viewport"]')
     if (viewport) {
@@ -207,6 +262,9 @@ export function CareerCoachChat() {
                 <AnimatePresence>
                   {messages.map((message) => {
                     const text = getMessageText(message)
+                    // Reveal the reply being generated with a typewriter effect.
+                    const isTyping = typedChars !== null && message.id === typedMessageIdRef.current
+                    const visibleText = isTyping ? text.slice(0, typedChars) : text
                     return (
                       <motion.div
                         key={message.id}
@@ -222,7 +280,10 @@ export function CareerCoachChat() {
                           }`}
                         >
                           <div className="prose prose-sm max-w-none text-inherit prose-p:my-1">
-                            <ReactMarkdown>{text}</ReactMarkdown>
+                            <ReactMarkdown>{visibleText}</ReactMarkdown>
+                            {isTyping && (
+                              <span className="typing-cursor" aria-hidden />
+                            )}
                           </div>
                           <div className="mt-2 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                             <Button
@@ -266,18 +327,23 @@ export function CareerCoachChat() {
                   })}
                 </AnimatePresence>
 
-                {isBusy && (
+                {isBusy && !lastAssistantText() && (
                   <div className="flex justify-start">
                     <div className="rounded-xl rounded-bl-sm border border-line bg-surface px-4 py-3">
-                      <div className="flex gap-1.5">
-                        {[0, 0.15, 0.3].map((delay) => (
-                          <motion.span
-                            key={delay}
-                            className="h-2 w-2 rounded-full bg-ink-muted"
-                            animate={{ y: [0, -4, 0] }}
-                            transition={{ duration: 0.6, repeat: Infinity, delay }}
-                          />
-                        ))}
+                      <div className="flex items-center gap-2">
+                        <span className="flex gap-1.5">
+                          {[0, 0.15, 0.3].map((delay) => (
+                            <motion.span
+                              key={delay}
+                              className="h-2 w-2 rounded-full bg-ink-muted"
+                              animate={{ y: [0, -4, 0] }}
+                              transition={{ duration: 0.6, repeat: Infinity, delay }}
+                            />
+                          ))}
+                        </span>
+                        <span className="text-caption text-ink-muted">
+                          Thinking{thinkingSeconds >= 1 ? `… ${thinkingSeconds}s` : '…'}
+                        </span>
                       </div>
                     </div>
                   </div>
